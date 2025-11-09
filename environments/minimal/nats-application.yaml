@@ -3,74 +3,24 @@ kind: Application
 metadata:
   name: nats-minimal
   namespace: argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "1"
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
   
-  source:
-    repoURL: https://nats-io.github.io/k8s/helm/charts/
+  sources:
+  # Source 1: Helm chart from NATS repo
+  - repoURL: https://nats-io.github.io/k8s/helm/charts/
     chart: nats
     targetRevision: 1.2.2
     helm:
-      values: |
-        config:
-          cluster:
-            enabled: true
-            replicas: 3
-            name: nats-minimal-cluster
-          
-          jetstream:
-            enabled: true
-            fileStore:
-              pvc:
-                size: 10Gi
-                storageClassName: standard-rwo
-              dir: /data/jetstream
-            memStore:
-              enabled: true
-              maxSize: 1Gi
-          
-          tls:
-            enabled: true
-            secretName: nats-tls-cert
-            ca: ca.crt
-            cert: tls.crt
-            key: tls.key
-            verify: true
-        
-        nats:
-          image:
-            repository: nats
-            tag: 2.10-alpine
-          
-          resources:
-            requests:
-              cpu: 100m
-              memory: 128Mi
-            limits:
-              cpu: 500m
-              memory: 512Mi
-        
-        natsbox:
-          enabled: true
-          resources:
-            requests:
-              cpu: 10m
-              memory: 32Mi
-            limits:
-              cpu: 100m
-              memory: 128Mi
-        
-        service:
-          enabled: true
-          ports:
-            client:
-              port: 4222
-            monitoring:
-              port: 8222
-            cluster:
-              port: 6222
+      valueFiles:
+      - \$values/environments/minimal/nats-values.yaml
+  
+  # Source 2: Your Git repo (for values file)
+  - repoURL: https://github.com/suckatrash/nats-argocd-stack.git
+    targetRevision: HEAD
+    ref: values
   
   destination:
     server: https://kubernetes.default.svc
@@ -86,5 +36,4 @@ spec:
       limit: 5
       backoff:
         duration: 5s
-        factor: 2
         maxDuration: 3m

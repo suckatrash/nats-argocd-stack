@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nats-monitoring
+  namespace: nats-minimal
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-staging
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - nats-monitoring.iamusingtheinternet.com
+    secretName: nats-monitoring-tls
+  rules:
+  - host: nats-monitoring.iamusingtheinternet.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: nats
+            port:
+              number: 8222

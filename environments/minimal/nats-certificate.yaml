@@ -1,0 +1,27 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: nats-tls
+  namespace: nats-minimal
+spec:
+  secretName: nats-tls-cert
+  duration: 2160h  # 90 days
+  renewBefore: 360h  # 15 days before expiry
+  subject:
+    organizations:
+    - NATS Cluster
+  commonName: nats.iamusingtheinternet.com
+  dnsNames:
+  - nats.iamusingtheinternet.com
+  - nats-monitoring.iamusingtheinternet.com
+  - nats.nats-minimal.svc.cluster.local
+  - "*.nats-minimal.svc.cluster.local"
+  - nats-0.nats.nats-minimal.svc.cluster.local
+  - nats-1.nats.nats-minimal.svc.cluster.local
+  - nats-2.nats.nats-minimal.svc.cluster.local
+  issuerRef:
+    name: letsencrypt-staging  # Use staging first for testing
+    kind: ClusterIssuer
+  privateKey:
+    algorithm: RSA
+    size: 2048

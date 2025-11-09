@@ -1,0 +1,27 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: nats-minimal
+
+resources:
+- ../../base/cert-manager/clusterissuer.yaml
+- nats-namespace.yaml
+- nats-certificate.yaml
+- nats-application.yaml
+- mimir-application.yaml
+
+patches:
+- target:
+    kind: ClusterIssuer
+    name: letsencrypt-prod
+  patch: |-
+    - op: replace
+      path: /spec/acme/email
+      value: erik048@gmail.com
+
+configMapGenerator:
+- name: env-config
+  literals:
+  - DOMAIN=iamusingtheinternet.com
+  - ENVIRONMENT=minimal
+- nats-ingress.yaml

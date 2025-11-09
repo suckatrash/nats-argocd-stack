@@ -1,0 +1,137 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mimir-minimal
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: default
+  
+  source:
+    repoURL: https://grafana.github.io/helm-charts
+    chart: mimir-distributed
+    targetRevision: 5.4.0
+    helm:
+      values: |
+        mimir:
+          structuredConfig:
+            multitenancy_enabled: false
+            blocks_storage:
+              backend: filesystem
+              filesystem:
+                dir: /data/blocks
+        
+        # Minimal single-replica setup
+        ingester:
+          replicas: 1
+          persistentVolume:
+            enabled: true
+            size: 10Gi
+            storageClass: standard-rwo
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 1Gi
+        
+        querier:
+          replicas: 1
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 200m
+              memory: 512Mi
+        
+        query_frontend:
+          replicas: 1
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 200m
+              memory: 512Mi
+        
+        store_gateway:
+          replicas: 1
+          persistentVolume:
+            enabled: true
+            size: 5Gi
+            storageClass: standard-rwo
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 200m
+              memory: 512Mi
+        
+        compactor:
+          replicas: 1
+          persistentVolume:
+            enabled: true
+            size: 5Gi
+            storageClass: standard-rwo
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 200m
+              memory: 512Mi
+        
+        distributor:
+          replicas: 1
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 200m
+              memory: 512Mi
+        
+        ruler:
+          enabled: false
+        
+        alertmanager:
+          enabled: false
+        
+        # Use MinIO for object storage
+        minio:
+          enabled: true
+          mode: standalone
+          persistence:
+            size: 10Gi
+            storageClass: standard-rwo
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 200m
+              memory: 512Mi
+        
+        nginx:
+          enabled: false
+  
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: mimir-minimal
+  
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m

@@ -15,7 +15,7 @@ spec:
     targetRevision: 1.2.2
     helm:
       valueFiles:
-      - \$values/environments/minimal/nats-values.yaml
+      - $values/environments/minimal/nats-values.yaml
   
   # Source 2: Your Git repo (for values file)
   - repoURL: https://github.com/suckatrash/nats-argocd-stack.git

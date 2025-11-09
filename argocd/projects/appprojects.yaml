@@ -1,0 +1,272 @@
+---
+# Development Project
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: nats-dev
+  namespace: argocd
+spec:
+  description: NATS Stack - Development Environment
+  
+  # Source repositories
+  sourceRepos:
+  - 'https://github.com/yourorg/nats-argocd-stack.git'
+  - 'https://nats-io.github.io/k8s/helm/charts/'
+  - 'https://grafana.github.io/helm-charts'
+  
+  # Destination clusters and namespaces
+  destinations:
+  - namespace: 'nats-dev'
+    server: 'https://kubernetes.default.svc'
+    name: in-cluster
+  - namespace: 'mimir-dev'
+    server: 'https://kubernetes.default.svc'
+  - namespace: 'cert-manager'
+    server: 'https://kubernetes.default.svc'
+  
+  # Allowed resource types
+  clusterResourceWhitelist:
+  - group: ''
+    kind: Namespace
+  - group: 'cert-manager.io'
+    kind: ClusterIssuer
+  - group: 'monitoring.coreos.com'
+    kind: PrometheusRule
+  
+  namespaceResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  
+  # Roles for dev team
+  roles:
+  - name: dev-admin
+    description: Full access to dev environment
+    policies:
+    - p, proj:nats-dev:dev-admin, applications, *, nats-dev/*, allow
+    - p, proj:nats-dev:dev-admin, repositories, *, *, allow
+    groups:
+    - dev-team
+  
+  - name: dev-read-only
+    description: Read-only access to dev environment
+    policies:
+    - p, proj:nats-dev:dev-read-only, applications, get, nats-dev/*, allow
+    - p, proj:nats-dev:dev-read-only, applications, sync, nats-dev/*, allow
+    groups:
+    - dev-team-ro
+  
+  # Sync windows (allow all for dev)
+  syncWindows:
+  - kind: allow
+    schedule: '* * * * *'
+    duration: 24h
+    applications:
+    - '*'
+
+---
+# Staging Project
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: nats-staging
+  namespace: argocd
+spec:
+  description: NATS Stack - Staging Environment
+  
+  sourceRepos:
+  - 'https://github.com/yourorg/nats-argocd-stack.git'
+  - 'https://nats-io.github.io/k8s/helm/charts/'
+  - 'https://grafana.github.io/helm-charts'
+  
+  destinations:
+  - namespace: 'nats-staging'
+    server: 'https://kubernetes.default.svc'
+    name: in-cluster
+  - namespace: 'mimir-staging'
+    server: 'https://kubernetes.default.svc'
+  - namespace: 'cert-manager'
+    server: 'https://kubernetes.default.svc'
+  
+  clusterResourceWhitelist:
+  - group: ''
+    kind: Namespace
+  - group: 'cert-manager.io'
+    kind: ClusterIssuer
+  - group: 'monitoring.coreos.com'
+    kind: PrometheusRule
+  
+  namespaceResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  
+  roles:
+  - name: staging-admin
+    description: Full access to staging
+    policies:
+    - p, proj:nats-staging:staging-admin, applications, *, nats-staging/*, allow
+    groups:
+    - sre-team
+    - dev-leads
+  
+  - name: staging-deployer
+    description: Can sync staging deployments
+    policies:
+    - p, proj:nats-staging:staging-deployer, applications, get, nats-staging/*, allow
+    - p, proj:nats-staging:staging-deployer, applications, sync, nats-staging/*, allow
+    groups:
+    - dev-team
+  
+  # Sync windows - only during business hours
+  syncWindows:
+  - kind: allow
+    schedule: '0 9-17 * * 1-5'  # Mon-Fri, 9am-5pm
+    duration: 8h
+    applications:
+    - '*'
+  
+  # Deny deployments outside business hours
+  - kind: deny
+    schedule: '0 0-8,18-23 * * *'  # Outside 9-5
+    duration: 24h
+    applications:
+    - '*'
+
+---
+# Production Project
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: nats-prod
+  namespace: argocd
+spec:
+  description: NATS Stack - Production Environment
+  
+  sourceRepos:
+  - 'https://github.com/yourorg/nats-argocd-stack.git'
+  - 'https://nats-io.github.io/k8s/helm/charts/'
+  - 'https://grafana.github.io/helm-charts'
+  
+  destinations:
+  - namespace: 'nats-prod'
+    server: 'https://kubernetes.default.svc'
+    name: in-cluster
+  - namespace: 'mimir-prod'
+    server: 'https://kubernetes.default.svc'
+  - namespace: 'cert-manager'
+    server: 'https://kubernetes.default.svc'
+  # If using separate prod cluster:
+  # - namespace: '*'
+  #   server: 'https://prod-cluster-api-server'
+  
+  clusterResourceWhitelist:
+  - group: ''
+    kind: Namespace
+  - group: 'cert-manager.io'
+    kind: ClusterIssuer
+  - group: 'monitoring.coreos.com'
+    kind: PrometheusRule
+  
+  namespaceResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  
+  # Strict RBAC for production
+  roles:
+  - name: prod-admin
+    description: Full admin access to production
+    policies:
+    - p, proj:nats-prod:prod-admin, applications, *, nats-prod/*, allow
+    - p, proj:nats-prod:prod-admin, repositories, *, *, allow
+    groups:
+    - sre-leads
+    - platform-team
+  
+  - name: prod-deployer
+    description: Can sync production (with approval)
+    policies:
+    - p, proj:nats-prod:prod-deployer, applications, get, nats-prod/*, allow
+    - p, proj:nats-prod:prod-deployer, applications, sync, nats-prod/*, allow
+    groups:
+    - sre-team
+  
+  - name: prod-read-only
+    description: Read-only production access
+    policies:
+    - p, proj:nats-prod:prod-read-only, applications, get, nats-prod/*, allow
+    groups:
+    - dev-team
+    - sre-team
+    - management
+  
+  # Production sync windows - only during change windows
+  syncWindows:
+  # Tuesday maintenance window
+  - kind: allow
+    schedule: '0 2-4 * * 2'  # Tuesday 2-4 AM
+    duration: 2h
+    applications:
+    - '*'
+  
+  # Thursday maintenance window
+  - kind: allow
+    schedule: '0 2-4 * * 4'  # Thursday 2-4 AM
+    duration: 2h
+    applications:
+    - '*'
+  
+  # Manual approvals enabled (emergency only)
+  - kind: allow
+    schedule: '* * * * *'
+    duration: 1h
+    applications:
+    - '*'
+    manualSync: true
+  
+  # Deny all other times for automatic sync
+  - kind: deny
+    schedule: '* * * * *'
+    duration: 24h
+    applications:
+    - '*'
+  
+  # Orphaned resources policy (don't auto-delete in prod)
+  orphanedResources:
+    warn: true
+  
+  # Signature verification (optional - requires signed commits)
+  # signatureKeys:
+  # - keyID: 0x1234567890ABCDEF
+
+---
+# Platform Project (for core infrastructure)
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: platform
+  namespace: argocd
+spec:
+  description: Platform Infrastructure (cert-manager, ingress, etc)
+  
+  sourceRepos:
+  - '*'
+  
+  destinations:
+  - namespace: '*'
+    server: '*'
+  
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  
+  namespaceResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  
+  roles:
+  - name: platform-admin
+    description: Platform team full access
+    policies:
+    - p, proj:platform:platform-admin, applications, *, platform/*, allow
+    groups:
+    - platform-team
+    - sre-leads

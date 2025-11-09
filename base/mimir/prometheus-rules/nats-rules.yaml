@@ -1,0 +1,204 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: nats-alerts
+  namespace: mimir
+  labels:
+    prometheus: kube-prometheus
+    role: alert-rules
+spec:
+  groups:
+  # NATS Server Health Alerts
+  - name: nats.health
+    interval: 30s
+    rules:
+    - alert: NATSServerDown
+      expr: up{job="nats"} == 0
+      for: 5m
+      labels:
+        severity: critical
+        component: nats
+      annotations:
+        summary: "NATS server is down"
+        description: "NATS server {{ $labels.instance }} has been down for more than 5 minutes"
+    
+    - alert: NATSHighMemoryUsage
+      expr: nats_server_mem_bytes / nats_server_max_mem_bytes > 0.85
+      for: 10m
+      labels:
+        severity: warning
+        component: nats
+      annotations:
+        summary: "NATS server high memory usage"
+        description: "NATS server {{ $labels.instance }} memory usage is {{ $value | humanizePercentage }} (threshold: 85%)"
+    
+    - alert: NATSHighCPUUsage
+      expr: rate(nats_server_cpu_seconds_total[5m]) > 0.9
+      for: 10m
+      labels:
+        severity: warning
+        component: nats
+      annotations:
+        summary: "NATS server high CPU usage"
+        description: "NATS server {{ $labels.instance }} CPU usage is {{ $value | humanizePercentage }}"
+  
+  # Connection and Client Alerts
+  - name: nats.connections
+    interval: 30s
+    rules:
+    - alert: NATSHighConnectionCount
+      expr: nats_server_connections > 50000
+      for: 5m
+      labels:
+        severity: warning
+        component: nats
+      annotations:
+        summary: "NATS server high connection count"
+        description: "NATS server {{ $labels.instance }} has {{ $value }} connections (threshold: 50000)"
+    
+    - alert: NATSHighConnectionRate
+      expr: rate(nats_server_connections[5m]) > 100
+      for: 5m
+      labels:
+        severity: info
+        component: nats
+      annotations:
+        summary: "NATS server high connection rate"
+        description: "NATS server {{ $labels.instance }} connection rate is {{ $value }} connections/sec"
+    
+    - alert: NATSSlowConsumers
+      expr: nats_server_slow_consumers > 10
+      for: 5m
+      labels:
+        severity: warning
+        component: nats
+      annotations:
+        summary: "NATS server has slow consumers"
+        description: "NATS server {{ $labels.instance }} has {{ $value }} slow consumers"
+  
+  # JetStream Alerts
+  - name: nats.jetstream
+    interval: 30s
+    rules:
+    - alert: JetStreamHighStorageUsage
+      expr: (nats_jetstream_server_file_store_used_bytes / nats_jetstream_server_file_store_reserved_bytes) > 0.85
+      for: 10m
+      labels:
+        severity: warning
+        component: jetstream
+      annotations:
+        summary: "JetStream high storage usage"
+        description: "JetStream on {{ $labels.instance }} storage usage is {{ $value | humanizePercentage }}"
+    
+    - alert: JetStreamHighMemoryUsage
+      expr: (nats_jetstream_server_mem_store_used_bytes / nats_jetstream_server_mem_store_reserved_bytes) > 0.85
+      for: 10m
+      labels:
+        severity: warning
+        component: jetstream
+      annotations:
+        summary: "JetStream high memory usage"
+        description: "JetStream on {{ $labels.instance }} memory usage is {{ $value | humanizePercentage }}"
+    
+    - alert: JetStreamStreamLagHigh
+      expr: nats_jetstream_stream_consumer_num_pending > 10000
+      for: 15m
+      labels:
+        severity: warning
+        component: jetstream
+      annotations:
+        summary: "JetStream stream has high lag"
+        description: "Stream {{ $labels.stream }} on {{ $labels.instance }} has {{ $value }} pending messages"
+  
+  # Cluster Health Alerts
+  - name: nats.cluster
+    interval: 30s
+    rules:
+    - alert: NATSClusterSplitBrain
+      expr: count(up{job="nats"} == 1) < 2
+      for: 5m
+      labels:
+        severity: critical
+        component: nats-cluster
+      annotations:
+        summary: "NATS cluster split brain detected"
+        description: "Less than 2 NATS servers are up, potential split brain"
+    
+    - alert: NATSClusterHighRouteLatency
+      expr: histogram_quantile(0.95, rate(nats_server_route_sent_msg_latency_bucket[5m])) > 0.1
+      for: 10m
+      labels:
+        severity: warning
+        component: nats-cluster
+      annotations:
+        summary: "NATS cluster high route latency"
+        description: "P95 route latency is {{ $value }}s on {{ $labels.instance }}"
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: nats-recording-rules
+  namespace: mimir
+  labels:
+    prometheus: kube-prometheus
+    role: recording-rules
+spec:
+  groups:
+  # Connection metrics aggregations
+  - name: nats.connections.recording
+    interval: 30s
+    rules:
+    - record: nats:connections:total
+      expr: sum(nats_server_connections) by (cluster)
+    
+    - record: nats:connections:rate
+      expr: sum(rate(nats_server_connections[5m])) by (cluster)
+    
+    - record: nats:connections:per_server
+      expr: avg(nats_server_connections) by (cluster, instance)
+  
+  # Message metrics aggregations
+  - name: nats.messages.recording
+    interval: 30s
+    rules:
+    - record: nats:messages:in:rate
+      expr: sum(rate(nats_server_in_msgs[5m])) by (cluster)
+    
+    - record: nats:messages:out:rate
+      expr: sum(rate(nats_server_out_msgs[5m])) by (cluster)
+    
+    - record: nats:messages:total:rate
+      expr: sum(rate(nats_server_in_msgs[5m]) + rate(nats_server_out_msgs[5m])) by (cluster)
+    
+    - record: nats:bytes:in:rate
+      expr: sum(rate(nats_server_in_bytes[5m])) by (cluster)
+    
+    - record: nats:bytes:out:rate
+      expr: sum(rate(nats_server_out_bytes[5m])) by (cluster)
+  
+  # Resource utilization
+  - name: nats.resources.recording
+    interval: 30s
+    rules:
+    - record: nats:memory:usage_percent
+      expr: (nats_server_mem_bytes / nats_server_max_mem_bytes) * 100
+    
+    - record: nats:cpu:usage_percent
+      expr: rate(nats_server_cpu_seconds_total[5m]) * 100
+  
+  # JetStream metrics
+  - name: nats.jetstream.recording
+    interval: 30s
+    rules:
+    - record: jetstream:storage:usage_percent
+      expr: (nats_jetstream_server_file_store_used_bytes / nats_jetstream_server_file_store_reserved_bytes) * 100
+    
+    - record: jetstream:memory:usage_percent
+      expr: (nats_jetstream_server_mem_store_used_bytes / nats_jetstream_server_mem_store_reserved_bytes) * 100
+    
+    - record: jetstream:streams:total
+      expr: count(nats_jetstream_stream_info) by (cluster)
+    
+    - record: jetstream:consumers:total
+      expr: count(nats_jetstream_stream_consumer_info) by (cluster)

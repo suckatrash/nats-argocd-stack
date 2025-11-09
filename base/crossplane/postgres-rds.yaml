@@ -1,0 +1,372 @@
+# PostgreSQL RDS Instances managed by Crossplane
+# Replaces Terraform for database infrastructure
+
+---
+# AWS RDS PostgreSQL Instance - Production
+apiVersion: rds.aws.upbound.io/v1beta1
+kind: Instance
+metadata:
+  name: nats-postgres-prod
+  namespace: crossplane-system
+  labels:
+    environment: production
+    managed-by: crossplane
+spec:
+  forProvider:
+    # Region
+    region: us-east-1
+    
+    # Instance configuration
+    instanceClass: db.t3.large
+    engine: postgres
+    engineVersion: "15.4"
+    
+    # Storage
+    allocatedStorage: 100
+    storageType: gp3
+    storageEncrypted: true
+    iops: 3000
+    storageThroughput: 125
+    maxAllocatedStorage: 1000  # Auto-scaling
+    
+    # Database
+    dbName: nats_prod
+    username: admin
+    passwordSecretRef:
+      name: postgres-admin-password
+      namespace: crossplane-system
+      key: password
+    port: 5432
+    
+    # Networking
+    publiclyAccessible: false
+    dbSubnetGroupNameSelector:
+      matchLabels:
+        environment: production
+    vpcSecurityGroupIdSelector:
+      matchLabels:
+        role: database
+        environment: production
+    
+    # High Availability
+    multiAz: true
+    availabilityZone: us-east-1a  # Primary AZ
+    
+    # Backup and Maintenance
+    backupRetentionPeriod: 30
+    backupWindow: "03:00-04:00"
+    maintenanceWindow: "Mon:04:00-Mon:05:00"
+    copyTagsToSnapshot: true
+    deleteAutomatedBackups: false
+    deletionProtection: true
+    finalSnapshotIdentifier: nats-postgres-prod-final-snapshot
+    skipFinalSnapshot: false
+    
+    # Monitoring
+    enabledCloudwatchLogsExports:
+    - postgresql
+    - upgrade
+    monitoringInterval: 60
+    monitoringRoleArnSelector:
+      matchLabels:
+        role: rds-monitoring
+    performanceInsightsEnabled: true
+    performanceInsightsRetentionPeriod: 7
+    
+    # Performance
+    autoMinorVersionUpgrade: true
+    applyImmediately: false
+    
+    # Parameters
+    parameterGroupNameSelector:
+      matchLabels:
+        environment: production
+        engine: postgres
+    
+    # Tags
+    tags:
+      Name: nats-postgres-prod
+      Environment: production
+      ManagedBy: crossplane
+      Application: nats
+  
+  # Write connection details to secret
+  writeConnectionSecretToRef:
+    name: postgres-prod-connection
+    namespace: nats-prod
+  
+  # Deletion policy
+  deletionPolicy: Delete
+  
+  providerConfigRef:
+    name: default
+
+---
+# AWS RDS PostgreSQL Instance - Development
+apiVersion: rds.aws.upbound.io/v1beta1
+kind: Instance
+metadata:
+  name: nats-postgres-dev
+  namespace: crossplane-system
+  labels:
+    environment: development
+spec:
+  forProvider:
+    region: us-east-1
+    
+    # Smaller instance for dev
+    instanceClass: db.t3.micro
+    engine: postgres
+    engineVersion: "15.4"
+    
+    # Minimal storage
+    allocatedStorage: 20
+    storageType: gp2
+    storageEncrypted: true
+    maxAllocatedStorage: 100
+    
+    dbName: nats_dev
+    username: admin
+    passwordSecretRef:
+      name: postgres-dev-password
+      namespace: crossplane-system
+      key: password
+    
+    # Single AZ for dev
+    publiclyAccessible: false
+    multiAz: false
+    
+    # Shorter backup retention
+    backupRetentionPeriod: 7
+    backupWindow: "03:00-04:00"
+    
+    # No deletion protection for dev
+    deletionProtection: false
+    skipFinalSnapshot: true
+    
+    # Basic monitoring
+    enabledCloudwatchLogsExports:
+    - postgresql
+    performanceInsightsEnabled: false
+    
+    tags:
+      Name: nats-postgres-dev
+      Environment: development
+      ManagedBy: crossplane
+  
+  writeConnectionSecretToRef:
+    name: postgres-dev-connection
+    namespace: nats-dev
+  
+  providerConfigRef:
+    name: default
+
+---
+# RDS Subnet Group
+apiVersion: rds.aws.upbound.io/v1beta1
+kind: SubnetGroup
+metadata:
+  name: nats-postgres-subnet-group
+  namespace: crossplane-system
+  labels:
+    environment: production
+spec:
+  forProvider:
+    region: us-east-1
+    description: Subnet group for NATS PostgreSQL instances
+    subnetIdSelector:
+      matchLabels:
+        type: private
+        tier: database
+    tags:
+      Name: nats-postgres-subnet-group
+      ManagedBy: crossplane
+  
+  providerConfigRef:
+    name: default
+
+---
+# RDS Parameter Group
+apiVersion: rds.aws.upbound.io/v1beta1
+kind: ParameterGroup
+metadata:
+  name: postgres15-optimized
+  namespace: crossplane-system
+  labels:
+    environment: production
+    engine: postgres
+spec:
+  forProvider:
+    region: us-east-1
+    family: postgres15
+    description: Optimized parameters for PostgreSQL 15
+    
+    parameter:
+    # Connection settings
+    - name: max_connections
+      value: "200"
+    
+    # Memory settings
+    - name: shared_buffers
+      value: "{DBInstanceClassMemory/4096}"  # 25% of RAM
+    
+    - name: effective_cache_size
+      value: "{DBInstanceClassMemory/2048}"  # 50% of RAM
+    
+    - name: work_mem
+      value: "16384"  # 16MB
+    
+    - name: maintenance_work_mem
+      value: "524288"  # 512MB
+    
+    # WAL settings
+    - name: wal_buffers
+      value: "2048"  # 2MB
+    
+    - name: max_wal_size
+      value: "4096"  # 4GB
+    
+    # Query planning
+    - name: random_page_cost
+      value: "1.1"  # SSD optimization
+    
+    - name: effective_io_concurrency
+      value: "200"
+    
+    # Logging
+    - name: log_min_duration_statement
+      value: "1000"  # Log queries > 1 second
+    
+    - name: log_connections
+      value: "1"
+    
+    - name: log_disconnections
+      value: "1"
+    
+    tags:
+      Name: postgres15-optimized
+      ManagedBy: crossplane
+  
+  providerConfigRef:
+    name: default
+
+---
+# Security Group for RDS
+apiVersion: ec2.aws.upbound.io/v1beta1
+kind: SecurityGroup
+metadata:
+  name: postgres-sg
+  namespace: crossplane-system
+  labels:
+    role: database
+    environment: production
+spec:
+  forProvider:
+    region: us-east-1
+    description: Security group for PostgreSQL RDS instances
+    vpcIdSelector:
+      matchLabels:
+        name: main-vpc
+    
+    tags:
+      Name: postgres-sg
+      ManagedBy: crossplane
+  
+  providerConfigRef:
+    name: default
+
+---
+# Security Group Rule - Allow PostgreSQL from EKS
+apiVersion: ec2.aws.upbound.io/v1beta1
+kind: SecurityGroupRule
+metadata:
+  name: postgres-from-eks
+  namespace: crossplane-system
+spec:
+  forProvider:
+    region: us-east-1
+    type: ingress
+    fromPort: 5432
+    toPort: 5432
+    protocol: tcp
+    
+    # Allow from EKS security group
+    sourceSecurityGroupIdSelector:
+      matchLabels:
+        name: eks-node-sg
+    
+    securityGroupIdSelector:
+      matchLabels:
+        role: database
+  
+  providerConfigRef:
+    name: default
+
+---
+# Read Replica (optional, for production)
+apiVersion: rds.aws.upbound.io/v1beta1
+kind: Instance
+metadata:
+  name: nats-postgres-prod-replica
+  namespace: crossplane-system
+  labels:
+    environment: production
+    role: replica
+spec:
+  forProvider:
+    region: us-east-1
+    
+    # Reference primary instance
+    replicateSourceDb: nats-postgres-prod
+    
+    # Can have different instance class
+    instanceClass: db.t3.large
+    
+    # Replica-specific settings
+    publiclyAccessible: false
+    autoMinorVersionUpgrade: true
+    
+    # No backup needed for replica
+    backupRetentionPeriod: 0
+    
+    performanceInsightsEnabled: true
+    
+    tags:
+      Name: nats-postgres-prod-replica
+      Environment: production
+      Role: read-replica
+      ManagedBy: crossplane
+  
+  providerConfigRef:
+    name: default
+
+---
+# CloudWatch Alarms for RDS
+apiVersion: cloudwatch.aws.upbound.io/v1beta1
+kind: MetricAlarm
+metadata:
+  name: postgres-high-cpu
+  namespace: crossplane-system
+spec:
+  forProvider:
+    region: us-east-1
+    alarmName: nats-postgres-prod-high-cpu
+    comparisonOperator: GreaterThanThreshold
+    evaluationPeriods: 2
+    metricName: CPUUtilization
+    namespace: AWS/RDS
+    period: 300
+    statistic: Average
+    threshold: 80
+    actionsEnabled: true
+    alarmDescription: Alert when RDS CPU exceeds 80%
+    
+    dimensions:
+      DBInstanceIdentifier: nats-postgres-prod
+    
+    # SNS topic for alerts
+    alarmActions:
+    - arn:aws:sns:us-east-1:ACCOUNT_ID:database-alerts
+  
+  providerConfigRef:
+    name: default

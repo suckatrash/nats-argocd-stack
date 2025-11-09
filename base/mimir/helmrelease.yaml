@@ -1,0 +1,232 @@
+apiVersion: v2
+kind: Application
+metadata:
+  name: mimir
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+  source:
+    chart: mimir-distributed
+    repoURL: https://grafana.github.io/helm-charts
+    targetRevision: 5.4.0  # Check for latest
+    helm:
+      values: |
+        # Deployment mode: monolithic for small setups, distributed for production
+        # Using monolithic for easier setup, switch to distributed for scale
+        
+        global:
+          clusterDomain: cluster.local
+          dnsService: kube-dns
+        
+        # Mimir configuration
+        mimir:
+          structuredConfig:
+            multitenancy_enabled: false
+            
+            # Blocks storage (for metrics)
+            blocks_storage:
+              backend: s3
+              s3:
+                endpoint: s3.amazonaws.com  # or minio endpoint
+                bucket_name: mimir-blocks
+                # Configure with environment-specific values
+                access_key_id: ${AWS_ACCESS_KEY_ID}
+                secret_access_key: ${AWS_SECRET_ACCESS_KEY}
+                region: us-east-1
+              
+              tsdb:
+                dir: /data/tsdb
+                retention_period: 24h  # Adjust per environment
+            
+            # Limits and performance
+            limits:
+              max_global_series_per_user: 1000000
+              max_global_series_per_metric: 0
+              ingestion_rate: 50000
+              ingestion_burst_size: 100000
+            
+            # Ruler for alerts and recording rules
+            ruler:
+              enable_api: true
+              enable_sharding: false
+              rule_path: /data/rules
+              alertmanager_url: http://alertmanager:9093
+              
+            # Query frontend
+            frontend:
+              log_queries_longer_than: 10s
+              compress_responses: true
+            
+            # Compactor
+            compactor:
+              compaction_interval: 30m
+              deletion_delay: 2h
+              retention_enabled: true
+        
+        # Component-specific configurations
+        
+        # Ingester - receives and stores metrics
+        ingester:
+          replicas: 3
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              cpu: 2000m
+              memory: 4Gi
+          
+          persistentVolume:
+            enabled: true
+            size: 20Gi
+            storageClass: standard
+          
+          affinity:
+            podAntiAffinity:
+              preferredDuringSchedulingIgnoredDuringExecution:
+              - weight: 100
+                podAffinityTerm:
+                  labelSelector:
+                    matchLabels:
+                      app.kubernetes.io/component: ingester
+                  topologyKey: kubernetes.io/hostname
+        
+        # Querier - queries metrics
+        querier:
+          replicas: 2
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 2Gi
+        
+        # Query Frontend - API endpoint
+        query_frontend:
+          replicas: 2
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+          
+          service:
+            type: ClusterIP
+            port: 8080
+        
+        # Store Gateway - queries long-term storage
+        store_gateway:
+          replicas: 2
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 2Gi
+          
+          persistentVolume:
+            enabled: true
+            size: 10Gi
+        
+        # Compactor - compacts blocks
+        compactor:
+          replicas: 1
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 2Gi
+          
+          persistentVolume:
+            enabled: true
+            size: 10Gi
+        
+        # Ruler - evaluates recording and alerting rules
+        ruler:
+          enabled: true
+          replicas: 2
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+        
+        # Distributor - receives metrics from Prometheus
+        distributor:
+          replicas: 2
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+        
+        # AlertManager for alert routing
+        alertmanager:
+          enabled: true
+          replicas: 2
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          
+          persistentVolume:
+            enabled: true
+            size: 1Gi
+        
+        # Minio for object storage (optional, for testing)
+        # Use external S3/GCS/Azure for production
+        minio:
+          enabled: false
+          # enabled: true  # Enable for local testing
+          # mode: standalone
+          # replicas: 1
+          # persistence:
+          #   size: 50Gi
+        
+        # Service Monitor for Prometheus
+        serviceMonitor:
+          enabled: true
+          interval: 30s
+          scrapeTimeout: 10s
+          labels:
+            prometheus: kube-prometheus
+        
+        # NGINX gateway (optional)
+        nginx:
+          enabled: true
+          replicas: 2
+          service:
+            type: LoadBalancer
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: mimir
+  
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true

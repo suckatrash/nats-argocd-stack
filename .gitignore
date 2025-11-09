@@ -1,0 +1,61 @@
+# Secrets - NEVER commit these
+*.env
+**/secrets.env
+**/secret-*.yaml
+!**/sealed-secrets.yaml
+credentials.json
+*.key
+*.pem
+*.crt
+!ca.crt
+
+# Kubernetes
+kubeconfig
+*.kubeconfig
+
+# Terraform state (if you add Terraform later)
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# Helm
+Chart.lock
+charts/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Build outputs
+/dist/
+/build/
+/out/
+*.log
+
+# Temp files
+/tmp/
+*.tmp
+.cache/
+
+# ArgoCD generated
+/argocd-apps/
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Local testing
+/local-testing/
+/scratch/
+
+# OS files
+Thumbs.db
+.DS_Store
+.Spotlight-V100
+.Trashes

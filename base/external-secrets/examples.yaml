@@ -1,0 +1,304 @@
+# Example ExternalSecret configurations
+# These pull secrets from your cloud provider and create Kubernetes secrets
+
+---
+# NATS Admin Credentials from AWS Secrets Manager
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: nats-admin-credentials
+  namespace: nats
+spec:
+  refreshInterval: 1h
+  
+  secretStoreRef:
+    name: aws-secretsmanager
+    kind: SecretStore
+  
+  target:
+    name: nats-admin-credentials
+    creationPolicy: Owner
+    template:
+      engineVersion: v2
+      data:
+        # Simple key-value
+        username: "{{ .username }}"
+        password: "{{ .password }}"
+        
+        # Create NATS credentials file format
+        nats.creds: |
+          -----BEGIN NATS USER JWT-----
+          {{ .jwt }}
+          ------END NATS USER JWT------
+
+          ************************* IMPORTANT *************************
+          NKEY Seed printed below can be used to sign and prove identity.
+          NKEYs are sensitive and should be treated as secrets.
+
+          -----BEGIN USER NKEY SEED-----
+          {{ .nkey }}
+          ------END USER NKEY SEED------
+
+          *************************************************************
+        
+        # Create a config file with injected secrets
+        nats-config.conf: |
+          port: 4222
+          
+          authorization {
+            user: "{{ .username }}"
+            password: "{{ .password }}"
+            timeout: 5
+          }
+          
+          jetstream {
+            store_dir: /data/jetstream
+            max_memory_store: 1GB
+            max_file_store: 10GB
+          }
+  
+  data:
+  # Pull from AWS Secrets Manager path
+  - secretKey: username
+    remoteRef:
+      key: prod/nats/admin
+      property: username
+  
+  - secretKey: password
+    remoteRef:
+      key: prod/nats/admin
+      property: password
+  
+  - secretKey: jwt
+    remoteRef:
+      key: prod/nats/admin
+      property: jwt
+  
+  - secretKey: nkey
+    remoteRef:
+      key: prod/nats/admin
+      property: nkey
+
+---
+# Mimir S3 Credentials
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: mimir-s3-credentials
+  namespace: mimir
+spec:
+  refreshInterval: 1h
+  
+  secretStoreRef:
+    name: aws-secretsmanager
+    kind: SecretStore
+  
+  target:
+    name: mimir-s3-credentials
+    creationPolicy: Owner
+    template:
+      data:
+        AWS_ACCESS_KEY_ID: "{{ .access_key_id }}"
+        AWS_SECRET_ACCESS_KEY: "{{ .secret_access_key }}"
+  
+  data:
+  - secretKey: access_key_id
+    remoteRef:
+      key: prod/mimir/s3
+      property: access_key_id
+  
+  - secretKey: secret_access_key
+    remoteRef:
+      key: prod/mimir/s3
+      property: secret_access_key
+
+---
+# AlertManager Secrets (Slack, PagerDuty, etc.)
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: alertmanager-secrets
+  namespace: mimir
+spec:
+  refreshInterval: 1h
+  
+  secretStoreRef:
+    name: aws-secretsmanager
+    kind: SecretStore
+  
+  target:
+    name: alertmanager-secrets
+    creationPolicy: Owner
+    template:
+      data:
+        SMTP_PASSWORD: "{{ .smtp_password }}"
+        PAGERDUTY_SERVICE_KEY: "{{ .pagerduty_key }}"
+        SLACK_WEBHOOK_URL: "{{ .slack_webhook }}"
+  
+  data:
+  - secretKey: smtp_password
+    remoteRef:
+      key: prod/alertmanager
+      property: smtp_password
+  
+  - secretKey: pagerduty_key
+    remoteRef:
+      key: prod/alertmanager
+      property: pagerduty_service_key
+  
+  - secretKey: slack_webhook
+    remoteRef:
+      key: prod/alertmanager
+      property: slack_webhook_url
+
+---
+# TLS Certificate from Secrets Manager (if not using cert-manager)
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: nats-tls-manual
+  namespace: nats
+spec:
+  refreshInterval: 24h
+  
+  secretStoreRef:
+    name: aws-secretsmanager
+    kind: SecretStore
+  
+  target:
+    name: nats-tls-cert-manual
+    creationPolicy: Owner
+    template:
+      type: kubernetes.io/tls
+      data:
+        tls.crt: "{{ .cert | b64dec }}"
+        tls.key: "{{ .key | b64dec }}"
+        ca.crt: "{{ .ca | b64dec }}"
+  
+  data:
+  - secretKey: cert
+    remoteRef:
+      key: prod/nats/tls
+      property: certificate
+  
+  - secretKey: key
+    remoteRef:
+      key: prod/nats/tls
+      property: private_key
+  
+  - secretKey: ca
+    remoteRef:
+      key: prod/nats/tls
+      property: ca_certificate
+
+---
+# PostgreSQL Connection String
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: postgres-connection
+  namespace: nats
+spec:
+  refreshInterval: 1h
+  
+  secretStoreRef:
+    name: aws-secretsmanager
+    kind: SecretStore
+  
+  target:
+    name: postgres-credentials
+    creationPolicy: Owner
+    template:
+      data:
+        # Individual fields
+        POSTGRES_HOST: "{{ .host }}"
+        POSTGRES_PORT: "{{ .port }}"
+        POSTGRES_USER: "{{ .username }}"
+        POSTGRES_PASSWORD: "{{ .password }}"
+        POSTGRES_DB: "{{ .dbname }}"
+        
+        # Connection string
+        DATABASE_URL: "postgresql://{{ .username }}:{{ .password }}@{{ .host }}:{{ .port }}/{{ .dbname }}?sslmode=require"
+        
+        # Config file with connection info
+        database.yaml: |
+          postgres:
+            host: {{ .host }}
+            port: {{ .port }}
+            database: {{ .dbname }}
+            user: {{ .username }}
+            password: {{ .password }}
+            sslmode: require
+            pool:
+              min: 5
+              max: 20
+  
+  data:
+  - secretKey: host
+    remoteRef:
+      key: prod/postgres/main
+      property: host
+  
+  - secretKey: port
+    remoteRef:
+      key: prod/postgres/main
+      property: port
+  
+  - secretKey: username
+    remoteRef:
+      key: prod/postgres/main
+      property: username
+  
+  - secretKey: password
+    remoteRef:
+      key: prod/postgres/main
+      property: password
+  
+  - secretKey: dbname
+    remoteRef:
+      key: prod/postgres/main
+      property: dbname
+
+---
+# Multiple secrets from different paths
+apiVersion: external-secrets.io/v1beta1
+kind: ExternalSecret
+metadata:
+  name: app-configuration
+  namespace: nats
+spec:
+  refreshInterval: 15m
+  
+  secretStoreRef:
+    name: aws-secretsmanager
+    kind: SecretStore
+  
+  target:
+    name: app-config
+    creationPolicy: Owner
+    template:
+      data:
+        # Create a complete application config file
+        config.yaml: |
+          api:
+            key: {{ .api_key }}
+            endpoint: {{ .api_endpoint }}
+          
+          database:
+            url: {{ .db_url }}
+          
+          messaging:
+            nats:
+              url: nats://nats:4222
+              credentials: /etc/nats/creds
+              tls:
+                enabled: true
+          
+          observability:
+            mimir:
+              endpoint: http://mimir-query-frontend.mimir:8080
+  
+  dataFrom:
+  # Pull all key-value pairs from a secret
+  - extract:
+      key: prod/app/config

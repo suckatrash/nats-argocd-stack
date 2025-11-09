@@ -1,0 +1,166 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+# Base resources
+resources:
+- ../../base/cert-manager/clusterissuer.yaml
+- ../../base/nats/namespace.yaml
+- ../../base/nats/certificate.yaml
+- ../../base/nats/helmrelease.yaml
+- ../../base/nats-management-ui/deployment.yaml
+- ../../base/mimir/helmrelease.yaml
+- ../../base/mimir/alertmanager-config.yaml
+- ../../base/mimir/prometheus-rules/nats-rules.yaml
+
+# Namespace for all resources
+namespace: nats-dev
+
+# Common labels for all resources
+commonLabels:
+  environment: dev
+  managed-by: argocd
+
+# Common annotations
+commonAnnotations:
+  environment: dev
+  contact: devops@example.com
+
+# Image tag overrides for dev (can use latest tags)
+images:
+- name: nats
+  newTag: 2.10-alpine
+- name: natsio/nats-surveyor
+  newTag: 0.5.1
+
+# ConfigMap generator for environment-specific config
+configMapGenerator:
+- name: env-config
+  literals:
+  - ENVIRONMENT=dev
+  - NATS_DOMAIN=nats-dev.example.com
+  - NATS_UI_DOMAIN=nats-ui-dev.example.com
+  - LETSENCRYPT_ISSUER=letsencrypt-staging  # Use staging for dev
+  - MIMIR_RETENTION=7d  # Shorter retention for dev
+  - LOG_LEVEL=debug
+
+# Secret generator (in production, use Sealed Secrets or External Secrets)
+secretGenerator:
+- name: alertmanager-secrets
+  envs:
+  - secrets.env
+
+# Patches for dev-specific overrides
+patches:
+# Reduce NATS replicas for dev
+- target:
+    kind: Application
+    name: nats
+  patch: |-
+    - op: replace
+      path: /spec/source/helm/values
+      value: |
+        config:
+          cluster:
+            replicas: 1  # Single node for dev
+          jetstream:
+            fileStore:
+              pvc:
+                size: 5Gi  # Smaller storage
+        nats:
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+        service:
+          type: ClusterIP  # No external LB for dev
+
+# Update certificate domain for dev
+- target:
+    kind: Certificate
+    name: nats-tls
+  patch: |-
+    - op: replace
+      path: /spec/dnsNames
+      value:
+      - nats-dev.example.com
+      - nats.nats-dev.svc.cluster.local
+      - "*.nats-dev.svc.cluster.local"
+    - op: replace
+      path: /spec/issuerRef/name
+      value: letsencrypt-staging
+
+# Reduce Mimir resources for dev
+- target:
+    kind: Application
+    name: mimir
+  patch: |-
+    - op: replace
+      path: /spec/source/helm/values
+      value: |
+        mimir:
+          structuredConfig:
+            blocks_storage:
+              backend: filesystem  # Use local storage for dev
+              filesystem:
+                dir: /data/blocks
+        
+        ingester:
+          replicas: 1
+          persistentVolume:
+            size: 5Gi
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 1Gi
+        
+        querier:
+          replicas: 1
+        
+        query_frontend:
+          replicas: 1
+        
+        store_gateway:
+          replicas: 1
+          persistentVolume:
+            size: 5Gi
+        
+        compactor:
+          replicas: 1
+        
+        ruler:
+          replicas: 1
+        
+        distributor:
+          replicas: 1
+        
+        alertmanager:
+          replicas: 1
+        
+        # Enable MinIO for dev (local S3-compatible storage)
+        minio:
+          enabled: true
+          mode: standalone
+          persistence:
+            size: 10Gi
+
+# Update ingress domains
+- target:
+    kind: Ingress
+    name: nats-management-ui
+  patch: |-
+    - op: replace
+      path: /spec/tls/0/hosts
+      value:
+      - nats-ui-dev.example.com
+    - op: replace
+      path: /spec/rules/0/host
+      value: nats-ui-dev.example.com
+    - op: replace
+      path: /metadata/annotations/cert-manager.io~1cluster-issuer
+      value: letsencrypt-staging

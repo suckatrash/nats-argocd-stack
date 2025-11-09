@@ -24,24 +24,7 @@ config:
     verify: false
 
 nats:
-# Delete the old manual application
-kubectl delete application nats-minimal -n argocd
-
-# Create new one that watches Git
-cat > environments/minimal/nats-application.yaml <<EOF
-apiVersion: argoproj.io/v1alpha1
-kind: Application
-metadata:
-  name: nats-  name: nats-  name: nats-  name: nater  name: nats-  name: nats-.a go  name: natsio  name: nats-ec  name: nats-  nso  name: nats-  nameAR  name: nats-  ry  name: nats-  name: natss-  name: n.i  name: nats-ar  name  chart:   name   targetRevisi  name: nats-  name: n    # V  name: nats-  name: nats-     valueFiles:
-      - $values/environments/minimal/nats-values.yaml
-    
-    # Reference to your Git repo for values
-    - repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-      targetRevision: HEAD
-      ref: values
-  
-  destination:
-      image:
+  image:
     repository: nats
     tag: 2.10-alpine
   

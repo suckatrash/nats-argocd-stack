@@ -180,22 +180,6 @@ data:
     #     priority: '{{ if eq .CommonLabels.severity "critical" }}P1{{ else }}P3{{ end }}'
 
 ---
-# Secret for sensitive AlertManager configuration
-# In production, use Sealed Secrets or External Secrets Operator
-apiVersion: v1
-kind: Secret
-metadata:
-  name: alertmanager-secrets
-  namespace: mimir
-type: Opaque
-stringData:
-  SMTP_PASSWORD: "changeme"
-  PAGERDUTY_SERVICE_KEY: "changeme"
-  PAGERDUTY_NATS_KEY: "changeme"
-  SLACK_WEBHOOK_URL: "https://hooks.slack.com/services/YOUR/WEBHOOK/URL"
-  WEBHOOK_TOKEN: "changeme"
-
----
 # Custom alert templates (optional)
 apiVersion: v1
 kind: ConfigMap

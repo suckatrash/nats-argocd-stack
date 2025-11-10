@@ -3,14 +3,10 @@ kind: Kustomization
 
 # Base resources
 resources:
-- ../../base/cert-manager/clusterissuer.yaml
-- ../../base/nats/namespace.yaml
-- ../../base/nats/certificate.yaml
-- ../../base/nats/helmrelease.yaml
-- ../../base/nats-management-ui/deployment.yaml
-- ../../base/mimir/helmrelease.yaml
-- ../../base/mimir/alertmanager-config.yaml
-- ../../base/mimir/prometheus-rules/nats-rules.yaml
+- ../../base/cert-manager
+- ../../base/nats
+- ../../base/nats-management-ui
+- ../../base/mimir
 
 # Namespace for all resources
 namespace: nats-prod

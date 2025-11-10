@@ -31,7 +31,7 @@ spec:
 
   destination:
     server: https://kubernetes.default.svc
-    namespace: nats-minimal
+    namespace: nats
 
   syncPolicy:
     automated:

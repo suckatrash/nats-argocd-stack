@@ -24,4 +24,4 @@ configMapGenerator:
   literals:
   - DOMAIN=iamusingtheinternet.com
   - ENVIRONMENT=minimal
-- nats-ingress.yaml
+  - nats-ingress.yaml

@@ -17,7 +17,7 @@ spec:
     targetRevision: 5.4.0
     helm:
       valueFiles:
-      - $values/environments/minimal/mimir-values.yaml
+      - $values/environments/minimal/mimir/mimir-values.yaml
 
   # Source 2: Your Git repo (for values file)
   - repoURL: https://github.com/suckatrash/nats-argocd-stack.git

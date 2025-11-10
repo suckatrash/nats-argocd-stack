@@ -20,7 +20,7 @@ spec:
   - nats-1.nats.nats-minimal.svc.cluster.local
   - nats-2.nats.nats-minimal.svc.cluster.local
   issuerRef:
-    name: letsencrypt-staging  # Use staging first for testing
+    name: selfsigned  # Use selfsigned for internal cluster domains
     kind: ClusterIssuer
   privateKey:
     algorithm: RSA

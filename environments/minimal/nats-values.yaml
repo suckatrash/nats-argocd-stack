@@ -23,10 +23,11 @@ config:
     key: tls.key
     verify: false
 
-nats:
+container:
   image:
     repository: nats
     tag: 2.12.1
+    pullPolicy: IfNotPresent
   
   resources:
     requests:

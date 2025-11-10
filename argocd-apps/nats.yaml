@@ -5,18 +5,42 @@ metadata:
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "3"
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
-  source:
-    repoURL: https://github.com/suckatrash/nats-argocd-stack.git
+
+  sources:
+  # Source 1: Helm chart from NATS repo
+  - repoURL: https://nats-io.github.io/k8s/helm/charts/
+    chart: nats
+    targetRevision: 1.2.2
+    helm:
+      valueFiles:
+      - $values/environments/minimal/nats-values.yaml
+
+  # Source 2: Your Git repo (for values file)
+  - repoURL: https://github.com/suckatrash/nats-argocd-stack.git
+    targetRevision: HEAD
+    ref: values
+
+  # Source 3: Infrastructure resources (namespace, certificate, ingress)
+  - repoURL: https://github.com/suckatrash/nats-argocd-stack.git
     targetRevision: HEAD
     path: environments/minimal/nats
+
   destination:
     server: https://kubernetes.default.svc
     namespace: nats-minimal
+
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
     - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        maxDuration: 3m

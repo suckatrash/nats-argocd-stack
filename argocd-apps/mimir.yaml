@@ -5,18 +5,37 @@ metadata:
   namespace: argocd
   annotations:
     argocd.argoproj.io/sync-wave: "3"
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
-  source:
-    repoURL: https://github.com/suckatrash/nats-argocd-stack.git
+
+  sources:
+  # Source 1: Helm chart from Grafana repo
+  - repoURL: https://grafana.github.io/helm-charts
+    chart: mimir-distributed
+    targetRevision: 5.4.0
+    helm:
+      valueFiles:
+      - $values/environments/minimal/mimir-values.yaml
+
+  # Source 2: Your Git repo (for values file)
+  - repoURL: https://github.com/suckatrash/nats-argocd-stack.git
     targetRevision: HEAD
-    path: environments/minimal/mimir
+    ref: values
+
   destination:
     server: https://kubernetes.default.svc
-    namespace: mimir
+    namespace: mimir-minimal
+
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
     syncOptions:
     - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        maxDuration: 3m

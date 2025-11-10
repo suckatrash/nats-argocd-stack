@@ -10,7 +10,7 @@ spec:
   acme:
     # Let's Encrypt staging server
     server: https://acme-staging-v02.api.letsencrypt.org/directory
-    email: your-email@example.com  # CHANGE THIS
+    email: erik048@gmail.com
     
     # Secret to store account private key
     privateKeySecretRef:
@@ -46,7 +46,7 @@ spec:
   acme:
     # Let's Encrypt production server
     server: https://acme-v02.api.letsencrypt.org/directory
-    email: your-email@example.com  # CHANGE THIS
+    email: erik048@gmail.com
     
     privateKeySecretRef:
       name: letsencrypt-prod-account-key

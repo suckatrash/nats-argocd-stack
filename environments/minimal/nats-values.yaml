@@ -26,7 +26,7 @@ config:
 nats:
   image:
     repository: nats
-    tag: 2.10-alpine
+    tag: 2.12.1
   
   resources:
     requests:

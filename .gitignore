@@ -42,9 +42,6 @@ charts/
 *.tmp
 .cache/
 
-# ArgoCD generated
-/argocd-apps/
-
 # Backup files
 *.bak
 *.backup

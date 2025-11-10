@@ -10,9 +10,7 @@ spec:
   source:
     repoURL: https://github.com/suckatrash/nats-argocd-stack.git
     targetRevision: HEAD
-    path: environments/minimal
-    directory:
-      include: '{nats-*.yaml}'
+    path: environments/minimal/nats
   destination:
     server: https://kubernetes.default.svc
     namespace: nats-minimal

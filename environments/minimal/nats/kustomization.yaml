@@ -1,0 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- nats-namespace.yaml
+- nats-certificate.yaml
+- nats-ingress.yaml
+
+# If you have Helm-based NATS deployment, remove this section
+# If nats-application.yaml was Helm config, add it here

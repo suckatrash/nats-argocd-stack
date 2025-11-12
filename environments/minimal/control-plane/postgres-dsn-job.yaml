@@ -1,0 +1,78 @@
+---
+# Job to construct PostgreSQL DSN from Crossplane connection secret
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: create-postgres-dsn
+  namespace: control-plane
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  template:
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: postgres-dsn-creator
+      containers:
+      - name: create-dsn
+        image: bitnami/kubectl:latest
+        command:
+        - /bin/bash
+        - -c
+        - |
+          set -e
+
+          # Wait for Crossplane to create the connection secret
+          echo "Waiting for control-plane-db-connection secret..."
+          until kubectl get secret control-plane-db-connection -n control-plane &>/dev/null; do
+            echo "Secret not found, waiting..."
+            sleep 5
+          done
+
+          # Extract connection details from Crossplane secret
+          ENDPOINT=$(kubectl get secret control-plane-db-connection -n control-plane -o jsonpath='{.data.endpoint}' | base64 -d)
+          PASSWORD=$(kubectl get secret control-plane-db-connection -n control-plane -o jsonpath='{.data.password}' | base64 -d)
+
+          # Construct DSN
+          DSN="postgres://scp:${PASSWORD}@${ENDPOINT}:5432/scpdata?sslmode=require"
+
+          # Create secret with DSN
+          kubectl create secret generic control-plane-postgres-dsn \
+            -n control-plane \
+            --from-literal=postgres-dsn="$DSN" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+          echo "PostgreSQL DSN secret created successfully"
+---
+# ServiceAccount for the job
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: postgres-dsn-creator
+  namespace: control-plane
+---
+# Role to manage secrets
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: postgres-dsn-creator
+  namespace: control-plane
+rules:
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get", "list", "create", "update", "patch"]
+---
+# RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: postgres-dsn-creator
+  namespace: control-plane
+subjects:
+- kind: ServiceAccount
+  name: postgres-dsn-creator
+  namespace: control-plane
+roleRef:
+  kind: Role
+  name: postgres-dsn-creator
+  apiGroup: rbac.authorization.k8s.io

@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: control-plane-config
+  namespace: control-plane
+data:
+  syn-cp.yaml: |
+    server:
+      # Full URL where you will access Control Plane
+      url: https://app.iamusingtheinternet.com
+
+      tls:
+        cert_file: /global-certs/tls.crt
+        key_file: /global-certs/tls.key
+
+    data_sources:
+      postgres:
+        # DSN will be constructed from the secret
+        # Format: postgres://scp:<PASSWORD>@<DATABASE_HOST>:5432/scpdata?sslmode=require
+        dsn_file: /app/secrets/postgres-dsn
+
+    metrics:
+      default_scrape_interval_seconds: 30
+
+    kms:
+      # KMS key is stored in GCP Secret Manager and mounted as a file
+      # The file contains the full key_url in format: base64key://KEY
+      key_url_file: /app/secrets/kms-key

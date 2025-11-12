@@ -1,0 +1,35 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: control-plane
+  namespace: argocd
+  annotations:
+    # Install after crossplane-providers (wave 2) is ready
+    # This app contains Crossplane DatabaseInstance, Database, and User resources
+    # that require Crossplane CRDs and the GCP provider to be installed
+    argocd.argoproj.io/sync-wave: "4"
+  finalizers:
+  - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+
+  source:
+    repoURL: https://github.com/suckatrash/nats-argocd-stack.git
+    targetRevision: HEAD
+    path: environments/minimal/control-plane
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: control-plane
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        maxDuration: 3m

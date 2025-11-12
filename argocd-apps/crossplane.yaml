@@ -36,6 +36,11 @@ spec:
       selfHeal: true
     syncOptions:
     - CreateNamespace=true
+    # Skip validation for Provider and ProviderConfig CRDs during initial sync.
+    # These CRDs don't exist until Crossplane is installed, but ArgoCD validates
+    # all resources before syncing. This option allows the sync to proceed and
+    # apply resources in waves: Crossplane first, then Providers after CRDs exist.
+    - SkipDryRunOnMissingResource=true
     retry:
       limit: 5
       backoff:

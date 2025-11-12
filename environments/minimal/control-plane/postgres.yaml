@@ -12,15 +12,13 @@ spec:
     region: us-west1
     databaseVersion: POSTGRES_16
     settings:
-    - tier: db-f1-micro  # Adjust size as needed
+    - edition: ENTERPRISE
+      tier: db-f1-micro
       diskSize: 10
       diskType: PD_SSD
       ipConfiguration:
-      - ipv4Enabled: true
-        requireSsl: true  # SSL required as per config
-        authorizedNetworks:
-        - name: allow-all
-          value: "0.0.0.0/0"  # Adjust to restrict access
+      - ipv4Enabled: false
+        privateNetwork: projects/PROJECT_ID/global/networks/default
       backupConfiguration:
       - enabled: true
         startTime: "03:00"

@@ -15,7 +15,7 @@ resources:
 - pvc.yaml
 - service.yaml
 
-# Patch the project ID in the ServiceAccount annotation
+# Patch the project ID in the ServiceAccount annotation and DatabaseInstance
 patches:
 - target:
     kind: ServiceAccount
@@ -24,3 +24,10 @@ patches:
     - op: replace
       path: /metadata/annotations/iam.gke.io~1gcp-service-account
       value: external-secrets-sa@erik-sandbox-408216.iam.gserviceaccount.com
+- target:
+    kind: DatabaseInstance
+    name: control-plane-db
+  patch: |-
+    - op: replace
+      path: /spec/forProvider/settings/0/ipConfiguration/0/privateNetwork
+      value: projects/erik-sandbox-408216/global/networks/default

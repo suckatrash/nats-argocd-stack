@@ -22,14 +22,45 @@ spec:
         - |
           set -e
 
-          # Install openssl (not included in alpine base image)
-          apk add --no-cache openssl
+          # Install required tools
+          apk add --no-cache openssl curl
 
-          PROJECT_ID=$(gcloud config get-value project)
+          # Get project ID from metadata server (works with Workload Identity)
+          echo "Fetching project ID from metadata server..."
+          PROJECT_ID=$(curl -H "Metadata-Flavor: Google" "http://metadata.google.internal/computeMetadata/v1/project/project-id" 2>/dev/null || echo "")
+
+          if [ -z "$PROJECT_ID" ]; then
+            echo "Error: Could not retrieve project ID from metadata server"
+            exit 1
+          fi
+
+          echo "Using project: $PROJECT_ID"
+
+          # Verify workload identity is working
+          echo "Verifying service account..."
+          SA_EMAIL=$(curl -H "Metadata-Flavor: Google" "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/email" 2>/dev/null || echo "")
+          echo "Service account: $SA_EMAIL"
+
           SECRET_NAME="control-plane-kms-key"
 
-          # Check if secret already exists
-          if gcloud secrets describe $SECRET_NAME --project=$PROJECT_ID &>/dev/null; then
+          # Get access token from metadata server
+          echo "Getting access token..."
+          ACCESS_TOKEN=$(curl -s -H "Metadata-Flavor: Google" \
+            "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token" | \
+            grep -o '"access_token":"[^"]*"' | cut -d'"' -f4)
+
+          if [ -z "$ACCESS_TOKEN" ]; then
+            echo "Error: Could not retrieve access token"
+            exit 1
+          fi
+
+          # Check if secret already exists using REST API
+          echo "Checking if secret already exists..."
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "Authorization: Bearer $ACCESS_TOKEN" \
+            "https://secretmanager.googleapis.com/v1/projects/$PROJECT_ID/secrets/$SECRET_NAME")
+
+          if [ "$STATUS" = "200" ]; then
             echo "Secret $SECRET_NAME already exists, skipping generation"
             exit 0
           fi
@@ -41,11 +72,30 @@ spec:
           # Store in base64key:// format as expected by control-plane
           KEY_URL="base64key://$KEY"
 
-          echo "Creating secret in GCP Secret Manager..."
-          echo -n "$KEY_URL" | gcloud secrets create $SECRET_NAME \
-            --data-file=- \
-            --replication-policy=automatic \
-            --project=$PROJECT_ID
+          echo "Creating secret in GCP Secret Manager using REST API..."
+          # Create the secret using REST API
+          CREATE_RESPONSE=$(curl -s -X POST \
+            -H "Authorization: Bearer $ACCESS_TOKEN" \
+            -H "Content-Type: application/json" \
+            "https://secretmanager.googleapis.com/v1/projects/$PROJECT_ID/secrets" \
+            -d "{
+              \"replication\": {
+                \"automatic\": {}
+              }
+            }" \
+            --data-urlencode "secretId=$SECRET_NAME")
+
+          # Add the secret version with the actual key data
+          echo "Adding secret version..."
+          VERSION_RESPONSE=$(curl -s -X POST \
+            -H "Authorization: Bearer $ACCESS_TOKEN" \
+            -H "Content-Type: application/json" \
+            "https://secretmanager.googleapis.com/v1/projects/$PROJECT_ID/secrets/$SECRET_NAME:addVersion" \
+            -d "{
+              \"payload\": {
+                \"data\": \"$(echo -n "$KEY_URL" | base64 -w0)\"
+              }
+            }")
 
           echo "KMS key generated and stored successfully"
           echo "Key URL: $KEY_URL"

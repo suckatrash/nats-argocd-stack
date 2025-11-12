@@ -22,6 +22,9 @@ spec:
         - |
           set -e
 
+          # Install openssl (not included in alpine base image)
+          apk add --no-cache openssl
+
           PROJECT_ID=$(gcloud config get-value project)
           SECRET_NAME="control-plane-kms-key"
 

@@ -56,3 +56,5 @@ metadata:
   annotations:
     # TODO: Update with your GCP service account that has Secret Manager permissions
     iam.gke.io/gcp-service-account: external-secrets@PROJECT_ID.iam.gserviceaccount.com
+    argocd.argoproj.io/hook: PreSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation

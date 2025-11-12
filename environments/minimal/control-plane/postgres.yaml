@@ -55,6 +55,9 @@ spec:
   forProvider:
     instanceRef:
       name: control-plane-db
-    password: "changeme-use-external-secret"  # This should be replaced with ExternalSecret
+    passwordSecretRef:
+      name: control-plane-db-password
+      namespace: control-plane
+      key: password
   providerConfigRef:
     name: default

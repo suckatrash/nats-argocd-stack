@@ -11,6 +11,8 @@ resources:
 - kms-key-generator.yaml
 - image-pull-secret.yaml
 - postgres.yaml
+- postgres-password-externalsecret.yaml
+- postgres-password-generator.yaml
 - postgres-dsn-job.yaml
 - pvc.yaml
 - service.yaml
@@ -20,6 +22,13 @@ patches:
 - target:
     kind: ServiceAccount
     name: kms-key-generator
+  patch: |-
+    - op: replace
+      path: /metadata/annotations/iam.gke.io~1gcp-service-account
+      value: external-secrets-sa@erik-sandbox-408216.iam.gserviceaccount.com
+- target:
+    kind: ServiceAccount
+    name: postgres-password-generator
   patch: |-
     - op: replace
       path: /metadata/annotations/iam.gke.io~1gcp-service-account

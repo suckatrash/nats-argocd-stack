@@ -174,13 +174,44 @@ kubectl delete job create-postgres-dsn -n control-plane
 # ArgoCD will recreate it on next sync
 ```
 
+## Database Password Management
+
+The PostgreSQL password is automatically generated and managed:
+
+1. **Pre-sync Job**: Generates a secure random password on first deployment
+2. **GCP Secret Manager**: Stores the password as `control-plane-db-password`
+3. **ExternalSecret**: Syncs the password from GCP to Kubernetes
+4. **Crossplane User**: References the secret to set the database user password
+
+The password is automatically generated only if it doesn't exist, ensuring it persists across deployments.
+
+### Manual Password Rotation
+
+To rotate the database password:
+
+```bash
+# Generate a new password and add it as a new version
+openssl rand -base64 32 | gcloud secrets versions add control-plane-db-password \
+    --data-file=- \
+    --project=YOUR_PROJECT_ID
+
+# External Secrets will sync the new password within 1 hour (or force refresh)
+kubectl annotate externalsecret control-plane-db-password -n control-plane \
+    force-sync=$(date +%s) --overwrite
+
+# Crossplane will automatically update the database user password
+# The DSN job will need to re-run to update the connection string
+kubectl delete job create-postgres-dsn -n control-plane
+# ArgoCD will recreate it on next sync
+```
+
 ## Security Notes
 
-1. **Database Password**: Currently hardcoded in `postgres.yaml`. Consider using ExternalSecret to pull from GCP Secret Manager.
-2. **Network Access**: PostgreSQL is configured with `0.0.0.0/0` access. Restrict to your GKE cluster's IP range in production.
+1. **Database Password**: Auto-generated and stored in GCP Secret Manager. Rotated manually as needed.
+2. **Network Access**: PostgreSQL uses private IP only, accessible only from within the VPC.
 3. **KMS Key**: Auto-generated 256-bit key stored in GCP Secret Manager. For production, consider using GCP KMS for key management.
 4. **SSL Certificates**: Using Let's Encrypt. Consider using a commercial CA for production.
-5. **Workload Identity**: Ensure the `kms-key-generator` service account is bound to a GCP service account with Secret Manager admin permissions.
+5. **Workload Identity**: Ensure the generator service accounts are bound to a GCP service account with Secret Manager admin permissions.
 
 ## Resource Requirements
 

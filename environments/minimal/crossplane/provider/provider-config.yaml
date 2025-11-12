@@ -5,7 +5,8 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "3"
 spec:
-  projectID: "erik-sandbox-408216"
+  # This gets patched by kustomization.yaml with your actual project ID
+  projectID: "PROJECT_ID"
   credentials:
     source: Secret
     secretRef:

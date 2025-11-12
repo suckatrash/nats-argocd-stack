@@ -1,0 +1,26 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- namespace.yaml
+- certificate.yaml
+- configmap.yaml
+- deployment.yaml
+- ingress.yaml
+- kms-externalsecret.yaml
+- kms-key-generator.yaml
+- image-pull-secret.yaml
+- postgres.yaml
+- postgres-dsn-job.yaml
+- pvc.yaml
+- service.yaml
+
+# Patch the project ID in the ServiceAccount annotation
+patches:
+- target:
+    kind: ServiceAccount
+    name: kms-key-generator
+  patch: |-
+    - op: replace
+      path: /metadata/annotations/iam.gke.io~1gcp-service-account
+      value: external-secrets@erik-sandbox-408216.iam.gserviceaccount.com

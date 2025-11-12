@@ -57,7 +57,7 @@ metadata:
   name: kms-key-generator
   namespace: control-plane
   annotations:
-    # TODO: Update with your GCP service account that has Secret Manager permissions
+    # This gets patched by kustomization.yaml with your actual project ID
     iam.gke.io/gcp-service-account: external-secrets@PROJECT_ID.iam.gserviceaccount.com
     argocd.argoproj.io/hook: PreSync
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation

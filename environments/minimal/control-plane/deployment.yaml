@@ -20,7 +20,6 @@ spec:
       containers:
       - name: control-plane
         image: ghcr.io/connecteverything/control-plane:1.8.1
-        command: ['server', 'start']
         ports:
         - name: http
           containerPort: 8080

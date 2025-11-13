@@ -1,14 +1,16 @@
 ---
 # Job to construct PostgreSQL DSN from Crossplane connection secret
+# Runs after Database and User are ready (wave 3)
 apiVersion: batch/v1
 kind: Job
 metadata:
   name: create-postgres-dsn
   namespace: control-plane
   annotations:
-    argocd.argoproj.io/hook: PostSync
-    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "3"
 spec:
+  # Clean up completed jobs after 1 hour
+  ttlSecondsAfterFinished: 3600
   template:
     spec:
       restartPolicy: OnFailure

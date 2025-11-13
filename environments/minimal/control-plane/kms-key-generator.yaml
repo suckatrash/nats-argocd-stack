@@ -1,14 +1,16 @@
 ---
 # Job to generate KMS key and store in GCP Secret Manager
+# Runs early (wave -1) to ensure key exists before ExternalSecret syncs
 apiVersion: batch/v1
 kind: Job
 metadata:
   name: generate-kms-key
   namespace: control-plane
   annotations:
-    argocd.argoproj.io/hook: PreSync
-    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "-1"
 spec:
+  # Clean up completed jobs after 1 hour
+  ttlSecondsAfterFinished: 3600
   template:
     spec:
       restartPolicy: OnFailure
@@ -101,6 +103,7 @@ spec:
           echo "Key URL: $KEY_URL"
 ---
 # Shared ServiceAccount for all secret generators (uses Workload Identity)
+# Created earliest (wave -2) so jobs can use it
 apiVersion: v1
 kind: ServiceAccount
 metadata:
@@ -109,5 +112,4 @@ metadata:
   annotations:
     # This gets patched by kustomization.yaml with your actual project ID
     iam.gke.io/gcp-service-account: external-secrets-sa@PROJECT_ID.iam.gserviceaccount.com
-    argocd.argoproj.io/hook: PreSync
-    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/sync-wave: "-2"

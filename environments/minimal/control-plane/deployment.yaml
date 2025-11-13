@@ -3,6 +3,9 @@ kind: Deployment
 metadata:
   name: control-plane
   namespace: control-plane
+  annotations:
+    # Deploy after all dependencies are ready (wave 4)
+    argocd.argoproj.io/sync-wave: "4"
 spec:
   replicas: 1
   strategy:

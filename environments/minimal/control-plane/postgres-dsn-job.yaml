@@ -43,7 +43,8 @@ spec:
 
           # Construct DSN
           # Username is the Crossplane User resource name: control-plane-scp-user
-          DSN="postgres://control-plane-scp-user:${PASSWORD}@${HOST}:5432/scpdata?sslmode=require"
+          # Database is the Crossplane Database resource name: control-plane-scpdata
+          DSN="postgres://control-plane-scp-user:${PASSWORD}@${HOST}:5432/control-plane-scpdata?sslmode=require"
 
           # Create secret with DSN
           kubectl create secret generic control-plane-postgres-dsn \

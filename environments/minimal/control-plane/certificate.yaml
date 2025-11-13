@@ -9,4 +9,4 @@ spec:
     name: letsencrypt-prod
     kind: ClusterIssuer
   dnsNames:
-  - app.iamusingtheinternet.com
+  - app.example.com  # Patched by kustomize

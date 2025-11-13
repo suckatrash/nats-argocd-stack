@@ -10,10 +10,10 @@ spec:
   ingressClassName: nginx
   tls:
   - hosts:
-    - nats-monitoring.iamusingtheinternet.com
+    - nats.example.com  # Patched by kustomize
     secretName: nats-monitoring-tls
   rules:
-  - host: nats-monitoring.iamusingtheinternet.com
+  - host: nats.example.com  # Patched by kustomize
     http:
       paths:
       - path: /

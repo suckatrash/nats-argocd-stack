@@ -1,0 +1,66 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: external-dns
+  namespace: argocd
+  annotations:
+    # Deploy after cert-manager (wave 0) but before apps that need DNS
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+
+  source:
+    repoURL: https://kubernetes-sigs.github.io/external-dns
+    targetRevision: 1.15.0
+    chart: external-dns
+    helm:
+      valuesObject:
+        provider: google
+        google:
+          # ENVIRONMENT-SPECIFIC: Update for new environments (from dns-config.yaml GCP_PROJECT_ID)
+          project: erik-sandbox-408216
+          serviceAccountSecret: ""
+        # ENVIRONMENT-SPECIFIC: Update for new environments (from dns-config.yaml BASE_DOMAIN)
+        domainFilters:
+        - gcp.iamusingtheinternet.com
+        txtOwnerId: "external-dns"
+        txtPrefix: "_external-dns."
+        sources:
+        - ingress
+        - service
+        policy: upsert-only
+        interval: 1m
+        logLevel: info
+        registry: txt
+        serviceAccount:
+          create: true
+          annotations:
+            iam.gke.io/gcp-service-account: external-dns@erik-sandbox-408216.iam.gserviceaccount.com
+        resources:
+          requests:
+            cpu: 10m
+            memory: 32Mi
+          limits:
+            cpu: 50m
+            memory: 64Mi
+        extraArgs:
+        - --google-zone-visibility=public
+        - --txt-owner-id=external-dns
+        # ENVIRONMENT-SPECIFIC: Update for new environments (from dns-config.yaml DNS_ZONE_NAME)
+        - --zone-id-filter=gcp-iamusingtheinternet
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: external-dns
+
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        maxDuration: 3m

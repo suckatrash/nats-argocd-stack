@@ -10,10 +10,9 @@ spec:
   subject:
     organizations:
     - NATS Cluster
-  commonName: nats.iamusingtheinternet.com
+  commonName: nats.example.com  # Patched by kustomize
   dnsNames:
-  - nats.iamusingtheinternet.com
-  - nats-monitoring.iamusingtheinternet.com
+  - nats.example.com  # Patched by kustomize
   - nats.nats-minimal.svc.cluster.local
   - "*.nats-minimal.svc.cluster.local"
   - nats-0.nats.nats-minimal.svc.cluster.local

@@ -17,8 +17,16 @@ resources:
 - pvc.yaml
 - service.yaml
 
-# Patch the project ID in the ServiceAccount annotation and DatabaseInstance
+# ============================================================================
+# ENVIRONMENT-SPECIFIC VALUES
+# ============================================================================
+# When creating a new environment, update these values (copy from ../dns-config.yaml):
+#   CONTROL_PLANE_HOST = app.gcp.iamusingtheinternet.com
+#   GCP_PROJECT_ID = erik-sandbox-408216
+# ============================================================================
+
 patches:
+# Patch GCP project ID in ServiceAccount annotation
 - target:
     kind: ServiceAccount
     name: secret-generator
@@ -26,6 +34,8 @@ patches:
     - op: replace
       path: /metadata/annotations/iam.gke.io~1gcp-service-account
       value: external-secrets-sa@erik-sandbox-408216.iam.gserviceaccount.com
+
+# Patch GCP project ID in DatabaseInstance
 - target:
     kind: DatabaseInstance
     name: control-plane-db
@@ -33,3 +43,24 @@ patches:
     - op: replace
       path: /spec/forProvider/settings/0/ipConfiguration/0/privateNetwork
       value: projects/erik-sandbox-408216/global/networks/default
+
+# Patch DNS name in Ingress
+- target:
+    kind: Ingress
+    name: control-plane
+  patch: |-
+    - op: replace
+      path: /spec/tls/0/hosts/0
+      value: app.gcp.iamusingtheinternet.com
+    - op: replace
+      path: /spec/rules/0/host
+      value: app.gcp.iamusingtheinternet.com
+
+# Patch DNS name in Certificate
+- target:
+    kind: Certificate
+    name: control-plane-tls
+  patch: |-
+    - op: replace
+      path: /spec/dnsNames/0
+      value: app.gcp.iamusingtheinternet.com

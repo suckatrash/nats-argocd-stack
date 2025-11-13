@@ -11,10 +11,10 @@ spec:
   ingressClassName: nginx  # Adjust based on your ingress controller
   tls:
   - hosts:
-    - app.iamusingtheinternet.com
+    - app.example.com  # Patched by kustomize
     secretName: control-plane-tls
   rules:
-  - host: app.iamusingtheinternet.com
+  - host: app.example.com  # Patched by kustomize
     http:
       paths:
       - path: /

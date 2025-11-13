@@ -1,0 +1,50 @@
+# ============================================================================
+# ENVIRONMENT CONFIGURATION - REFERENCE
+# ============================================================================
+# This file serves as the SINGLE SOURCE OF TRUTH for environment values.
+# When creating a new environment, update the values below, then copy them to:
+#
+# 1. control-plane/kustomization.yaml
+#     - CONTROL_PLANE_HOST (2 locations in patches)
+#     - GCP_PROJECT_ID (2 locations in patches)
+#
+# 2. nats/kustomization.yaml
+#     - NATS_HOST (2 locations in patches)
+#
+# 3. crossplane/provider/kustomization.yaml
+#     - GCP_PROJECT_ID (1 location in patch)
+#
+# 4. external-secrets/stores/kustomization.yaml
+#     - GCP_PROJECT_ID (1 location in patch)
+#
+# 5. ../../argocd-apps/external-dns.yaml
+#     - BASE_DOMAIN (domainFilters, line ~25)
+#     - DNS_ZONE_NAME (--zone-id-filter, line ~50)
+#     - GCP_PROJECT_ID (google.project, line ~21)
+#
+# Note: This ConfigMap is deployed but not actively used for replacements
+# due to kustomize path security restrictions. It serves as documentation.
+# ============================================================================
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: environment-dns-config
+  namespace: kube-system
+data:
+  # ===== DNS Configuration =====
+  # Base domain for this environment (used by external-dns domain filter)
+  BASE_DOMAIN: "gcp.iamusingtheinternet.com"
+
+  # DNS zone name in GCP Cloud DNS (used by external-dns zone filter)
+  DNS_ZONE_NAME: "gcp-iamusingtheinternet"
+
+  # Control plane hostname (full FQDN)
+  CONTROL_PLANE_HOST: "app.gcp.iamusingtheinternet.com"
+
+  # NATS monitoring hostname (full FQDN)
+  NATS_HOST: "nats.gcp.iamusingtheinternet.com"
+
+  # ===== GCP Configuration =====
+  # GCP Project ID
+  GCP_PROJECT_ID: "erik-sandbox-408216"

@@ -4,8 +4,15 @@ kind: Kustomization
 resources:
 - cluster-secret-store.yaml
 
-# Patch the project ID in the ClusterSecretStore
+# ============================================================================
+# ENVIRONMENT-SPECIFIC VALUES
+# ============================================================================
+# When creating a new environment, update these values (copy from ../../../dns-config.yaml):
+#   GCP_PROJECT_ID = erik-sandbox-408216
+# ============================================================================
+
 patches:
+# Patch GCP project ID in ClusterSecretStore
 - target:
     kind: ClusterSecretStore
     name: gcpsm-cluster-store

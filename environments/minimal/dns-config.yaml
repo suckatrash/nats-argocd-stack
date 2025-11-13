@@ -37,7 +37,7 @@ data:
   BASE_DOMAIN: "gcp.iamusingtheinternet.com"
 
   # DNS zone name in GCP Cloud DNS (used by external-dns zone filter)
-  DNS_ZONE_NAME: "gcp-iamusingtheinternet"
+  DNS_ZONE_NAME: "iamusingtheinternet-delegated"
 
   # Control plane hostname (full FQDN)
   CONTROL_PLANE_HOST: "app.gcp.iamusingtheinternet.com"

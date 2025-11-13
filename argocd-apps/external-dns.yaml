@@ -46,7 +46,7 @@ spec:
         extraArgs:
         - --google-zone-visibility=public
         # ENVIRONMENT-SPECIFIC: Update for new environments (from dns-config.yaml DNS_ZONE_NAME)
-        - --zone-id-filter=gcp-iamusingtheinternet
+        - --zone-id-filter=iamusingtheinternet-delegated
 
   destination:
     server: https://kubernetes.default.svc

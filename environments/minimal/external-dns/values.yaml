@@ -49,4 +49,4 @@ resources:
 # Extra arguments
 extraArgs:
 - --google-zone-visibility=public
-- --zone-id-filter=gcp-iamusingtheinternet
+- --zone-id-filter=iamusingtheinternet-delegated

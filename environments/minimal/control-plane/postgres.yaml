@@ -51,6 +51,11 @@ spec:
   forProvider:
     instanceRef:
       name: control-plane-db
+
+  # Orphan the database if this K8s resource is deleted
+  # This ensures the database persists through rebuilds
+  deletionPolicy: Orphan
+
   providerConfigRef:
     name: default
 ---
@@ -72,5 +77,10 @@ spec:
       name: control-plane-db-password
       namespace: control-plane
       key: password
+
+  # Orphan the user if this K8s resource is deleted
+  # This ensures the user and password persist through rebuilds
+  deletionPolicy: Orphan
+
   providerConfigRef:
     name: default

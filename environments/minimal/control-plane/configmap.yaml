@@ -4,25 +4,28 @@ metadata:
   name: control-plane-config
   namespace: control-plane
 data:
-  syn-cp.yaml: |
-    server:
-      # Full URL where you will access Control Plane
-      url: https://app.iamusingtheinternet.com
+  entrypoint.sh: |
+    #!/bin/sh
+    set -e
 
+    # Generate config file with environment variable values
+    cat > /tmp/syn-cp.yaml <<EOF
+    server:
+      url: https://app.iamusingtheinternet.com
       tls:
         cert_file: /global-certs/tls.crt
         key_file: /global-certs/tls.key
 
     data_sources:
       postgres:
-        # DSN will be provided via environment variable
-        # Format: postgres://scp:<PASSWORD>@<DATABASE_HOST>:5432/scpdata?sslmode=require
         dsn: ${POSTGRES_DSN}
 
     metrics:
       default_scrape_interval_seconds: 30
 
     kms:
-      # KMS key will be provided via environment variable
-      # Format: base64key://KEY
       key_url: ${KMS_KEY_URL}
+    EOF
+
+    # Start the application with the generated config
+    exec synadia-control-plane server start -c /tmp/syn-cp.yaml

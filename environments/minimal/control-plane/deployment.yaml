@@ -22,7 +22,7 @@ spec:
       containers:
       - name: control-plane
         image: ghcr.io/connecteverything/control-plane:1.8.1
-        command: ['synadia-control-plane', 'server', 'start']
+        command: ['/bin/sh', '/scripts/entrypoint.sh']
         env:
         - name: KMS_KEY_URL
           valueFrom:
@@ -42,9 +42,8 @@ spec:
           containerPort: 8443
           protocol: TCP
         volumeMounts:
-        - name: config
-          mountPath: /app/syn-cp.yaml
-          subPath: syn-cp.yaml
+        - name: scripts
+          mountPath: /scripts
           readOnly: true
         - name: tls-certs
           mountPath: /global-certs
@@ -76,9 +75,10 @@ spec:
           initialDelaySeconds: 10
           periodSeconds: 5
       volumes:
-      - name: config
+      - name: scripts
         configMap:
           name: control-plane-config
+          defaultMode: 0755
       - name: tls-certs
         secret:
           secretName: control-plane-tls

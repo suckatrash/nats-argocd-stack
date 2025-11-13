@@ -2,11 +2,14 @@
 # PostgreSQL Database Instance provisioned via Crossplane
 # Crossplane must be installed (wave 1) and GCP provider ready (wave 2)
 # before this resource can be applied (wave 4)
+# This instance is created first (sync-wave 0), then Database and User are created (sync-wave 1)
 apiVersion: sql.gcp.upbound.io/v1beta1
 kind: DatabaseInstance
 metadata:
   name: control-plane-db
   namespace: control-plane
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
 spec:
   forProvider:
     region: us-west1
@@ -33,11 +36,15 @@ spec:
     name: default
 ---
 # Database: scpdata
+# Created after DatabaseInstance is ready (sync-wave 1)
 apiVersion: sql.gcp.upbound.io/v1beta1
 kind: Database
 metadata:
   name: control-plane-scpdata
   namespace: control-plane
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   forProvider:
     instanceRef:
@@ -46,11 +53,15 @@ spec:
     name: default
 ---
 # User: control-plane-scp-user
+# Created after DatabaseInstance is ready (sync-wave 1)
 apiVersion: sql.gcp.upbound.io/v1beta1
 kind: User
 metadata:
   name: control-plane-scp-user
   namespace: control-plane
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
 spec:
   forProvider:
     instanceRef:

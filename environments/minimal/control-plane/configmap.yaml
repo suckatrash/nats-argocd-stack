@@ -15,9 +15,9 @@ data:
 
     data_sources:
       postgres:
-        # DSN will be constructed from the secret
+        # DSN will be provided via environment variable
         # Format: postgres://scp:<PASSWORD>@<DATABASE_HOST>:5432/scpdata?sslmode=require
-        dsn_file: /app/secrets/postgres-dsn
+        dsn: ${POSTGRES_DSN}
 
     metrics:
       default_scrape_interval_seconds: 30

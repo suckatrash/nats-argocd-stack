@@ -67,7 +67,19 @@ spec:
             exit 0
           fi
 
-          echo "Generating new KMS key..."
+          # SAFETY CHECK: If Cloud SQL database exists but KMS key is missing, FAIL
+          # This prevents generating a new key that can't decrypt existing data
+          echo "KMS key not found in Secret Manager, checking if database already exists..."
+          DB_CHECK=$(gcloud sql instances describe control-plane-db --project=$PROJECT_ID 2>&1 || echo "not_found")
+
+          if echo "$DB_CHECK" | grep -q "state: RUNNABLE"; then
+            echo "ERROR: Cloud SQL database exists but KMS key is missing!"
+            echo "ERROR: Cannot generate a new KMS key as it would make existing encrypted data unreadable."
+            echo "ERROR: If you intentionally deleted the key, you must restore it from backup or recreate the database."
+            exit 1
+          fi
+
+          echo "No existing database found, safe to generate new KMS key..."
           # Generate 32-byte (256-bit) random key and base64 encode it
           KEY=$(openssl rand -base64 32)
 

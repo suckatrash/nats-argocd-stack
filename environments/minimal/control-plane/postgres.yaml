@@ -78,9 +78,11 @@ spec:
       namespace: control-plane
       key: password
 
-  # Orphan the user if this K8s resource is deleted
-  # This ensures the user and password persist through rebuilds
-  deletionPolicy: Orphan
+  # User is NOT orphaned - it gets deleted/recreated on rebuilds
+  # This ensures the Cloud SQL password is updated to match the secret
+  # The password itself persists in GCP Secret Manager (generator job is idempotent)
+  # Database and DatabaseInstance ARE orphaned, so encrypted data persists
+  # KMS key persists in GCP Secret Manager, so encrypted data remains readable
 
   providerConfigRef:
     name: default

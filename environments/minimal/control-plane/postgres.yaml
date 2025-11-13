@@ -53,6 +53,7 @@ metadata:
   namespace: control-plane
 spec:
   forProvider:
+    name: scp
     instanceRef:
       name: control-plane-db
     passwordSecretRef:

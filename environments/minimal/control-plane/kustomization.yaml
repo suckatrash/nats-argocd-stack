@@ -4,7 +4,6 @@ kind: Kustomization
 resources:
 - namespace.yaml
 - certificate.yaml
-- configmap.yaml
 - deployment.yaml
 - ingress.yaml
 - kms-externalsecret.yaml
@@ -64,3 +63,13 @@ patches:
     - op: replace
       path: /spec/dnsNames/0
       value: app.gcp.iamusingtheinternet.com
+
+# ConfigMap generator - automatically appends hash suffix when content changes
+# This triggers deployment rollouts when the ConfigMap is updated
+configMapGenerator:
+- name: control-plane-config
+  namespace: control-plane
+  options:
+    disableNameSuffixHash: false
+  files:
+  - entrypoint.sh=configmap-entrypoint.sh

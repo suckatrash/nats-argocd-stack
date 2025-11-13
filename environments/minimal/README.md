@@ -15,7 +15,7 @@ The `dns-config.yaml` file serves as the **single source of truth** and referenc
 
 1. **Update `dns-config.yaml`** with your environment's values
 2. **Copy values to kustomization files** (each file has clear comments showing what to update):
-   - `control-plane/kustomization.yaml` - 4 value replacements
+   - `control-plane/kustomization.yaml` - 5 value replacements (Ingress, Certificate, ConfigMap, 2x GCP project)
    - `nats/kustomization.yaml` - 1 value replacement
    - `crossplane/provider/kustomization.yaml` - 1 value replacement
    - `external-secrets/stores/kustomization.yaml` - 1 value replacement

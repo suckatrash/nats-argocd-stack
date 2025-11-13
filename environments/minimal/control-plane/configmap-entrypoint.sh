@@ -1,0 +1,24 @@
+#!/bin/sh
+set -e
+
+# Generate config file with environment variable values
+cat > /tmp/syn-cp.yaml <<EOF
+server:
+  url: https://app.gcp.iamusingtheinternet.com
+  tls:
+    cert_file: /global-certs/tls.crt
+    key_file: /global-certs/tls.key
+
+data_sources:
+  postgres:
+    dsn: ${POSTGRES_DSN}
+
+metrics:
+  default_scrape_interval_seconds: 30
+
+kms:
+  key_url: ${KMS_KEY_URL}
+EOF
+
+# Start the application with the generated config
+exec synadia-control-plane server start -c /tmp/syn-cp.yaml

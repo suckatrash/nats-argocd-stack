@@ -21,6 +21,12 @@ spec:
       - name: control-plane
         image: ghcr.io/connecteverything/control-plane:1.8.1
         command: ['synadia-control-plane', 'server', 'start']
+        env:
+        - name: KMS_KEY_URL
+          valueFrom:
+            secretKeyRef:
+              name: control-plane-kms-key
+              key: kms-key
         ports:
         - name: http
           containerPort: 8080

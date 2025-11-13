@@ -23,6 +23,6 @@ data:
       default_scrape_interval_seconds: 30
 
     kms:
-      # KMS key is stored in GCP Secret Manager and mounted as a file
-      # The file contains the full key_url in format: base64key://KEY
-      key_url_file: /app/secrets/kms-key
+      # KMS key will be provided via environment variable
+      # Format: base64key://KEY
+      key_url: ${KMS_KEY_URL}

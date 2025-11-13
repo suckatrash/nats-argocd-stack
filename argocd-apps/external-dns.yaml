@@ -45,7 +45,6 @@ spec:
             memory: 64Mi
         extraArgs:
         - --google-zone-visibility=public
-        - --txt-owner-id=external-dns
         # ENVIRONMENT-SPECIFIC: Update for new environments (from dns-config.yaml DNS_ZONE_NAME)
         - --zone-id-filter=gcp-iamusingtheinternet
 

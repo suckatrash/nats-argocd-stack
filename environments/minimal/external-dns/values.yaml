@@ -49,5 +49,4 @@ resources:
 # Extra arguments
 extraArgs:
 - --google-zone-visibility=public
-- --txt-owner-id=external-dns
 - --zone-id-filter=gcp-iamusingtheinternet

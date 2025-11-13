@@ -27,10 +27,10 @@ All prerequisites and secret creation steps are covered in the main [README.md](
 
 The PostgreSQL database is automatically provisioned via Crossplane:
 
-- **Instance**: `control-plane-db` (Cloud SQL PostgreSQL 16)
+- **Instance**: `control-plane-db` (Cloud SQL PostgreSQL 16, ENTERPRISE edition)
 - **Database**: `scpdata`
-- **User**: `scp`
-- **Connection**: SSL required
+- **User**: `scp` (password auto-generated and stored in GCP Secret Manager)
+- **Connection**: Private IP only (no public access)
 - **Region**: us-west1
 
 ### How It Works
@@ -86,11 +86,12 @@ kms:
 ## Deployment Order
 
 1. **KMS Key Generation** (PreSync hook) - Generates encryption key and stores in GCP Secret Manager
-2. **PostgreSQL Database** (via Crossplane) - Creates DB instance, database, and user
-3. **ExternalSecrets** - Syncs KMS key and GHCR credentials from GCP to Kubernetes
-4. **DSN Secret Job** (PostSync hook) - Constructs PostgreSQL connection string
-5. **Certificate** (via cert-manager) - Issues TLS certificate
-6. **Deployment** - Starts control-plane application
+2. **Database Password Generation** (PreSync hook) - Generates database password and stores in GCP Secret Manager
+3. **PostgreSQL Database** (via Crossplane) - Creates DB instance, database, and user
+4. **ExternalSecrets** - Syncs KMS key, database password, and GHCR credentials from GCP to Kubernetes
+5. **DSN Secret Job** (PostSync hook) - Constructs PostgreSQL connection string
+6. **Certificate** (via cert-manager) - Issues TLS certificate
+7. **Deployment** - Starts control-plane application
 
 ## Accessing the Application
 
@@ -153,6 +154,7 @@ Check if secrets exist:
 kubectl get secret control-plane-tls -n control-plane
 kubectl get secret control-plane-postgres-dsn -n control-plane
 kubectl get secret control-plane-kms-key -n control-plane
+kubectl get secret control-plane-db-password -n control-plane
 kubectl get secret ghcr-credentials -n control-plane
 ```
 

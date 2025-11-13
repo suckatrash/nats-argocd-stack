@@ -21,14 +21,7 @@ resources:
 patches:
 - target:
     kind: ServiceAccount
-    name: kms-key-generator
-  patch: |-
-    - op: replace
-      path: /metadata/annotations/iam.gke.io~1gcp-service-account
-      value: external-secrets-sa@erik-sandbox-408216.iam.gserviceaccount.com
-- target:
-    kind: ServiceAccount
-    name: postgres-password-generator
+    name: secret-generator
   patch: |-
     - op: replace
       path: /metadata/annotations/iam.gke.io~1gcp-service-account

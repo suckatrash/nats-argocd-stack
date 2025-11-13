@@ -12,7 +12,7 @@ spec:
   template:
     spec:
       restartPolicy: OnFailure
-      serviceAccountName: kms-key-generator
+      serviceAccountName: secret-generator
       containers:
       - name: generate-key
         image: google/cloud-sdk:alpine
@@ -100,14 +100,14 @@ spec:
           echo "KMS key generated and stored successfully"
           echo "Key URL: $KEY_URL"
 ---
-# ServiceAccount for the job (uses Workload Identity)
+# Shared ServiceAccount for all secret generators (uses Workload Identity)
 apiVersion: v1
 kind: ServiceAccount
 metadata:
-  name: kms-key-generator
+  name: secret-generator
   namespace: control-plane
   annotations:
     # This gets patched by kustomization.yaml with your actual project ID
-    iam.gke.io/gcp-service-account: external-secrets@PROJECT_ID.iam.gserviceaccount.com
+    iam.gke.io/gcp-service-account: external-secrets-sa@PROJECT_ID.iam.gserviceaccount.com
     argocd.argoproj.io/hook: PreSync
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation

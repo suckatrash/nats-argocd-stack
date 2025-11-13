@@ -3,7 +3,6 @@ kind: Kustomization
 
 resources:
 - cluster-secret-store.yaml
-- secret-store.yaml
 
 # Patch the project ID in the ClusterSecretStore
 patches:

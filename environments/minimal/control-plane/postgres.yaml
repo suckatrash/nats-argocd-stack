@@ -25,6 +25,10 @@ spec:
         startTime: "03:00"
         pointInTimeRecoveryEnabled: true
 
+  # Orphan the Cloud SQL instance if this K8s resource is deleted
+  # This ensures the database persists through rebuilds
+  deletionPolicy: Orphan
+
   # Store connection details in a secret
   writeConnectionSecretToRef:
     name: control-plane-db-connection

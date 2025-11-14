@@ -43,10 +43,14 @@ spec:
           # Password comes from the auto-generated password secret
           PASSWORD=$(kubectl get secret control-plane-db-password -n control-plane -o jsonpath='{.data.password}' | base64 -d)
 
+          # URL-encode the password to handle special characters like /, +, =
+          # This is critical for base64-encoded passwords which may contain these characters
+          URL_ENCODED_PASSWORD=$(printf %s "$PASSWORD" | jq -sRr @uri)
+
           # Construct DSN
           # Username is the Crossplane User resource name: control-plane-scp-user
           # Database is the Crossplane Database resource name: control-plane-scpdata
-          DSN="postgres://control-plane-scp-user:${PASSWORD}@${HOST}:5432/control-plane-scpdata?sslmode=require"
+          DSN="postgres://control-plane-scp-user:${URL_ENCODED_PASSWORD}@${HOST}:5432/control-plane-scpdata?sslmode=require"
 
           # Create secret with DSN
           kubectl create secret generic control-plane-postgres-dsn \

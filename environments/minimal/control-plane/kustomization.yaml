@@ -12,6 +12,7 @@ resources:
 - postgres.yaml
 - postgres-password-externalsecret.yaml
 - postgres-password-generator.yaml
+- secret-generator-rbac.yaml
 - db-client-cert-job.yaml
 - postgres-dsn-job.yaml
 - pvc.yaml

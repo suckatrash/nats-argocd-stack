@@ -3,6 +3,7 @@
 **/secrets.env
 **/secret-*.yaml
 !**/sealed-secrets.yaml
+!**/secret-generator-rbac.yaml
 credentials.json
 *.key
 *.pem

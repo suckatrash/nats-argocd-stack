@@ -81,7 +81,9 @@ spec:
 
           echo "No existing database found, safe to generate new KMS key..."
           # Generate 32-byte (256-bit) random key and base64 encode it
-          KEY=$(openssl rand -base64 32)
+          # Use base64url encoding (RFC 4648) to avoid + and / characters
+          # which can cause issues in URLs and environment variables
+          KEY=$(openssl rand -base64 32 | tr '+/' '-_' | tr -d '=')
 
           # Store in base64key:// format as expected by control-plane
           KEY_URL="base64key://$KEY"

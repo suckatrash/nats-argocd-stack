@@ -80,8 +80,9 @@ spec:
           fi
 
           echo "No existing database found, safe to generate new KMS key..."
-          # Generate 32-byte (256-bit) random key and base64 encode it
-          KEY=$(openssl rand -base64 32)
+          # Generate 32-byte (256-bit) random key and base64url encode it
+          # gocloud.dev/secrets/localsecrets expects base64url (RFC 4648) encoding with padding
+          KEY=$(openssl rand -base64 32 | tr '+/' '-_')
 
           # Store in base64key:// format as expected by control-plane
           KEY_URL="base64key://$KEY"

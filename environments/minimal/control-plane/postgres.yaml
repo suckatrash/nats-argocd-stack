@@ -20,6 +20,7 @@ spec:
       ipConfiguration:
       - ipv4Enabled: false
         privateNetwork: projects/PROJECT_ID/global/networks/default
+        requireSsl: true
       backupConfiguration:
       - enabled: true
         startTime: "03:00"

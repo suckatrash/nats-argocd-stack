@@ -54,6 +54,9 @@ spec:
         - name: secrets
           mountPath: /app/secrets
           readOnly: true
+        - name: db-certs
+          mountPath: /app/db-certs
+          readOnly: true
         - name: data
           mountPath: /app/data
         resources:
@@ -92,6 +95,9 @@ spec:
               name: control-plane-postgres-dsn
           - secret:
               name: control-plane-kms-key
+      - name: db-certs
+        secret:
+          secretName: control-plane-db-client-certs
       - name: data
         persistentVolumeClaim:
           claimName: control-plane-data

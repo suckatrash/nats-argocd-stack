@@ -1,0 +1,108 @@
+---
+# Job to generate Cloud SQL client certificates
+# Runs after Database and User are ready (wave 2)
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: generate-db-client-cert
+  namespace: control-plane
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  # Clean up completed jobs after 1 hour
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: secret-generator
+      containers:
+      - name: generate-cert
+        image: google/cloud-sdk:alpine
+        command:
+        - /bin/sh
+        - -c
+        - |
+          set -e
+
+          # Get project ID from metadata server
+          echo "Fetching project ID from metadata server..."
+          PROJECT_ID=$(curl -H "Metadata-Flavor: Google" "http://metadata.google.internal/computeMetadata/v1/project/project-id" 2>/dev/null || echo "")
+
+          if [ -z "$PROJECT_ID" ]; then
+            echo "Error: Could not retrieve project ID from metadata server"
+            exit 1
+          fi
+
+          echo "Using project: $PROJECT_ID"
+
+          # Install required tools
+          apk add --no-cache kubectl
+
+          INSTANCE_NAME="control-plane-db"
+          CERT_NAME="control-plane-client-cert"
+          SECRET_NAME="control-plane-db-client-certs"
+          NAMESPACE="control-plane"
+
+          # Check if secret already exists
+          echo "Checking if client certificate secret already exists..."
+          if kubectl get secret $SECRET_NAME -n $NAMESPACE &>/dev/null; then
+            echo "Client certificate secret already exists, skipping generation"
+            exit 0
+          fi
+
+          # Check if certificate already exists in Cloud SQL
+          echo "Checking if client certificate exists in Cloud SQL..."
+          EXISTING_CERT=$(gcloud sql ssl-certs list --instance=$INSTANCE_NAME --project=$PROJECT_ID --format="value(commonName)" --filter="commonName=$CERT_NAME" 2>&1 || echo "")
+
+          if [ -n "$EXISTING_CERT" ]; then
+            echo "ERROR: Certificate $CERT_NAME already exists in Cloud SQL but Kubernetes secret is missing"
+            echo "This likely means the certificate was created but the secret creation failed"
+            echo "Please manually delete the certificate and re-run this job:"
+            echo "  gcloud sql ssl-certs delete $CERT_NAME --instance=$INSTANCE_NAME --project=$PROJECT_ID"
+            exit 1
+          fi
+
+          # Create client certificate
+          echo "Creating client certificate..."
+          CERT_DIR=$(mktemp -d)
+
+          # Create the certificate and get the private key
+          gcloud sql ssl-certs create $CERT_NAME \
+            $CERT_DIR/client-key.pem \
+            --instance=$INSTANCE_NAME \
+            --project=$PROJECT_ID
+
+          # Download the client certificate
+          gcloud sql ssl-certs describe $CERT_NAME \
+            --instance=$INSTANCE_NAME \
+            --project=$PROJECT_ID \
+            --format="get(cert)" > $CERT_DIR/client-cert.pem
+
+          # Download the server CA certificate
+          echo "Downloading server CA certificate..."
+          gcloud sql ssl server-ca-certs list \
+            --instance=$INSTANCE_NAME \
+            --project=$PROJECT_ID \
+            --format="get(cert)" | head -1 > $CERT_DIR/server-ca.pem
+
+          # Verify files exist and have content
+          for file in client-key.pem client-cert.pem server-ca.pem; do
+            if [ ! -s "$CERT_DIR/$file" ]; then
+              echo "ERROR: $file was not created or is empty"
+              exit 1
+            fi
+            echo "$file created successfully ($(wc -c < $CERT_DIR/$file) bytes)"
+          done
+
+          # Create Kubernetes secret with all three files
+          echo "Creating Kubernetes secret with client certificates..."
+          kubectl create secret generic $SECRET_NAME \
+            -n $NAMESPACE \
+            --from-file=client-key.pem=$CERT_DIR/client-key.pem \
+            --from-file=client-cert.pem=$CERT_DIR/client-cert.pem \
+            --from-file=server-ca.pem=$CERT_DIR/server-ca.pem
+
+          # Clean up temporary files
+          rm -rf $CERT_DIR
+
+          echo "Client certificate generated and stored successfully"

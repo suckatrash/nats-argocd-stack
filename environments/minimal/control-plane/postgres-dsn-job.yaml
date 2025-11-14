@@ -47,10 +47,11 @@ spec:
           # This is critical for base64-encoded passwords which may contain these characters
           URL_ENCODED_PASSWORD=$(printf %s "$PASSWORD" | jq -sRr @uri)
 
-          # Construct DSN
+          # Construct DSN with client certificate authentication
           # Username is the Crossplane User resource name: control-plane-scp-user
           # Database is the Crossplane Database resource name: control-plane-scpdata
-          DSN="postgres://control-plane-scp-user:${URL_ENCODED_PASSWORD}@${HOST}:5432/control-plane-scpdata?sslmode=require"
+          # SSL parameters reference mounted certificate files
+          DSN="postgres://control-plane-scp-user:${URL_ENCODED_PASSWORD}@${HOST}:5432/control-plane-scpdata?sslmode=verify-ca&sslcert=/app/db-certs/client-cert.pem&sslkey=/app/db-certs/client-key.pem&sslrootcert=/app/db-certs/server-ca.pem"
 
           # Create secret with DSN
           kubectl create secret generic control-plane-postgres-dsn \

@@ -6,7 +6,7 @@ metadata:
 spec:
   secretName: control-plane-tls
   issuerRef:
-    name: letsencrypt-prod
+    name: letsencrypt-staging
     kind: ClusterIssuer
   dnsNames:
   - app.example.com  # Patched by kustomize

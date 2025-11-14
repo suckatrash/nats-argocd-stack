@@ -91,13 +91,19 @@ spec:
           CREATE_RESPONSE=$(curl -s -X POST \
             -H "Authorization: Bearer $ACCESS_TOKEN" \
             -H "Content-Type: application/json" \
-            "https://secretmanager.googleapis.com/v1/projects/$PROJECT_ID/secrets" \
+            "https://secretmanager.googleapis.com/v1/projects/$PROJECT_ID/secrets?secretId=$SECRET_NAME" \
             -d "{
               \"replication\": {
                 \"automatic\": {}
               }
-            }" \
-            --data-urlencode "secretId=$SECRET_NAME")
+            }")
+
+          # Check if secret creation failed
+          if echo "$CREATE_RESPONSE" | grep -q "error"; then
+            echo "ERROR: Failed to create secret in Secret Manager"
+            echo "Response: $CREATE_RESPONSE"
+            exit 1
+          fi
 
           # Add the secret version with the actual key data
           echo "Adding secret version..."
@@ -110,6 +116,13 @@ spec:
                 \"data\": \"$(echo -n "$KEY_URL" | base64 -w0)\"
               }
             }")
+
+          # Check if adding version failed
+          if echo "$VERSION_RESPONSE" | grep -q "error"; then
+            echo "ERROR: Failed to add secret version"
+            echo "Response: $VERSION_RESPONSE"
+            exit 1
+          fi
 
           echo "KMS key generated and stored successfully"
           echo "Key URL: $KEY_URL"

@@ -69,7 +69,8 @@ spec:
             gcloud sql ssl server-ca-certs list \
               --instance=$INSTANCE_NAME \
               --project=$PROJECT_ID \
-              --format="get(cert)" | head -1 > $cert_dir/server-ca.pem
+              --limit=1 \
+              --format="get(cert)" > $cert_dir/server-ca.pem
 
             # Verify files exist and have content
             for file in client-key.pem client-cert.pem server-ca.pem; do

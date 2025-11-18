@@ -5,6 +5,7 @@ resources:
 - nats-namespace.yaml
 - nats-certificate.yaml
 - nats-ingress.yaml
+- nats-pdb.yaml
 
 # ============================================================================
 # ENVIRONMENT-SPECIFIC VALUES

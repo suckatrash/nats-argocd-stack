@@ -24,6 +24,11 @@ spec:
     targetRevision: HEAD
     ref: values
 
+  # Source 3: Infrastructure resources (PDBs, etc.)
+  - repoURL: https://github.com/suckatrash/nats-argocd-stack.git
+    targetRevision: HEAD
+    path: environments/minimal/mimir
+
   destination:
     server: https://kubernetes.default.svc
     namespace: mimir

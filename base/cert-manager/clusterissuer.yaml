@@ -1,78 +1,36 @@
----
-# Let's Encrypt Staging (for testing)
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
   name: letsencrypt-staging
-  annotations:
-    argocd.argoproj.io/sync-wave: "0"
 spec:
   acme:
-    # Let's Encrypt staging server
     server: https://acme-staging-v02.api.letsencrypt.org/directory
-    email: erik048@gmail.com
-    
-    # Secret to store account private key
+    email: placeholder@example.com
     privateKeySecretRef:
       name: letsencrypt-staging-account-key
-    
-    # HTTP-01 challenge (for public endpoints)
     solvers:
-    - http01:
-        ingress:
-          class: nginx  # or traefik, etc.
-    
-    # DNS-01 challenge (for wildcard certs and private endpoints)
-    # Uncomment and configure for your DNS provider
-    # - dns01:
-    #     cloudflare:
-    #       email: your-email@example.com
-    #       apiTokenSecretRef:
-    #         name: cloudflare-api-token
-    #         key: api-token
-    #   selector:
-    #     dnsZones:
-    #     - example.com
-
+      - http01:
+          ingress:
+            class: nginx
 ---
-# Let's Encrypt Production
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
   name: letsencrypt-prod
-  annotations:
-    argocd.argoproj.io/sync-wave: "0"
 spec:
   acme:
-    # Let's Encrypt production server
     server: https://acme-v02.api.letsencrypt.org/directory
-    email: erik048@gmail.com
-    
+    email: placeholder@example.com
     privateKeySecretRef:
       name: letsencrypt-prod-account-key
-    
-    # HTTP-01 challenge
     solvers:
-    - http01:
-        ingress:
-          class: nginx
-    
-    # DNS-01 for wildcard/internal (uncomment if needed)
-    # - dns01:
-    #     route53:
-    #       region: us-east-1
-    #       accessKeyID: AWS_ACCESS_KEY_ID
-    #       secretAccessKeySecretRef:
-    #         name: route53-credentials
-    #         key: secret-access-key
-
+      - http01:
+          ingress:
+            class: nginx
 ---
-# Self-signed issuer for internal/development
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
   name: selfsigned
-  annotations:
-    argocd.argoproj.io/sync-wave: "0"
 spec:
   selfSigned: {}

@@ -1,0 +1,26 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: nats-tls
+  namespace: nats
+spec:
+  secretName: nats-tls-cert
+  duration: 2160h
+  renewBefore: 360h
+  subject:
+    organizations:
+      - NATS Cluster
+  commonName: nats.example.com
+  dnsNames:
+    - nats.example.com
+    - nats.nats.svc.cluster.local
+    - "*.nats.svc.cluster.local"
+    - nats-0.nats.nats.svc.cluster.local
+    - nats-1.nats.nats.svc.cluster.local
+    - nats-2.nats.nats.svc.cluster.local
+  issuerRef:
+    name: selfsigned
+    kind: ClusterIssuer
+  privateKey:
+    algorithm: RSA
+    size: 2048

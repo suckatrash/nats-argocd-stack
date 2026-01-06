@@ -9,6 +9,7 @@ credentials.json
 *.pem
 *.crt
 !ca.crt
+.keys/
 
 # Kubernetes
 kubeconfig

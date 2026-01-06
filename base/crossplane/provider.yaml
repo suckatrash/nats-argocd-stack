@@ -1,0 +1,34 @@
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: provider-gcp-cloudplatform
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  package: xpkg.upbound.io/upbound/provider-gcp-cloudplatform:v1.8.1
+  controllerConfigRef:
+    name: provider-gcp-config
+---
+apiVersion: pkg.crossplane.io/v1
+kind: Provider
+metadata:
+  name: provider-gcp-sql
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  package: xpkg.upbound.io/upbound/provider-gcp-sql:v1.8.1
+  controllerConfigRef:
+    name: provider-gcp-config
+---
+apiVersion: pkg.crossplane.io/v1alpha1
+kind: ControllerConfig
+metadata:
+  name: provider-gcp-config
+spec:
+  serviceAccountName: provider-gcp
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: provider-gcp
+  namespace: crossplane-system

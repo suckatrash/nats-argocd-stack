@@ -1,0 +1,28 @@
+cluster:
+  name: minimal
+  server: https://kubernetes.default.svc
+
+gcp:
+  project: erik-sandbox-408216
+  region: us-west2
+  network: default
+
+dns:
+  baseDomain: gcp.iamusingtheinternet.com
+  zoneName: iamusingtheinternet-delegated
+
+apps:
+  controlPlane:
+    enabled: true
+    host: app.gcp.iamusingtheinternet.com
+    image: ghcr.io/connecteverything/control-plane:1.8.1
+  nats:
+    enabled: true
+    host: nats.gcp.iamusingtheinternet.com
+    replicas: 3
+  mimir:
+    enabled: true
+
+certManager:
+  email: erik048@gmail.com
+  issuer: letsencrypt-prod

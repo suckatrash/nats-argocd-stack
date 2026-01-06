@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: control-plane-entrypoint
+  namespace: control-plane
+data:
+  entrypoint.sh: |
+    #!/bin/sh
+    set -e
+    cat > /tmp/syn-cp.yaml <<EOF
+    server:
+      url: https://app.example.com
+      tls:
+        cert_file: /global-certs/tls.crt
+        key_file: /global-certs/tls.key
+    data_sources:
+      postgres:
+        dsn: ${POSTGRES_DSN}
+    metrics:
+      default_scrape_interval_seconds: 30
+    kms:
+      key_url: ${KMS_KEY_URL}
+    EOF
+    exec synadia-control-plane server start -c /tmp/syn-cp.yaml

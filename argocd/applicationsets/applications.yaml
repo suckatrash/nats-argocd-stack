@@ -1,0 +1,326 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: nats
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - git:
+        repoURL: https://github.com/suckatrash/nats-argocd-stack.git
+        revision: HEAD
+        files:
+          - path: "clusters/*/config.yaml"
+  template:
+    metadata:
+      name: '{{.cluster.name}}-nats'
+      annotations:
+        argocd.argoproj.io/sync-wave: "3"
+      finalizers:
+        - resources-finalizer.argocd.argoproj.io
+    spec:
+      project: default
+      destination:
+        server: '{{.cluster.server}}'
+        namespace: nats
+      sources:
+        - repoURL: https://nats-io.github.io/k8s/helm/charts/
+          chart: nats
+          targetRevision: 1.2.2
+          helm:
+            valuesObject:
+              config:
+                cluster:
+                  enabled: true
+                  replicas: '{{.apps.nats.replicas}}'
+                  name: 'nats-{{.cluster.name}}-cluster'
+                jetstream:
+                  enabled: true
+                  fileStore:
+                    pvc:
+                      size: 10Gi
+                      storageClassName: standard-rwo
+                    dir: /data/jetstream
+                  memStore:
+                    enabled: true
+                    maxSize: 1Gi
+                tls:
+                  enabled: true
+                  secretName: nats-tls-cert
+                  ca: ca.crt
+                  cert: tls.crt
+                  key: tls.key
+                  verify: false
+              container:
+                image:
+                  repository: nats
+                  tag: 2.12.2
+                  pullPolicy: IfNotPresent
+                resources:
+                  requests:
+                    cpu: 100m
+                    memory: 128Mi
+                  limits:
+                    cpu: 500m
+                    memory: 512Mi
+              natsbox:
+                enabled: true
+                resources:
+                  requests:
+                    cpu: 10m
+                    memory: 32Mi
+                  limits:
+                    cpu: 100m
+                    memory: 128Mi
+              service:
+                enabled: true
+                ports:
+                  client:
+                    port: 4222
+                  monitoring:
+                    port: 8222
+                  cluster:
+                    port: 6222
+        - repoURL: https://github.com/suckatrash/nats-argocd-stack.git
+          targetRevision: HEAD
+          path: base/nats
+          kustomize:
+            patches:
+              - target:
+                  kind: Ingress
+                  name: nats-monitoring
+                patch: |
+                  - op: replace
+                    path: /spec/tls/0/hosts/0
+                    value: '{{.apps.nats.host}}'
+                  - op: replace
+                    path: /spec/rules/0/host
+                    value: '{{.apps.nats.host}}'
+              - target:
+                  kind: Certificate
+                  name: nats-tls
+                patch: |
+                  - op: replace
+                    path: /spec/commonName
+                    value: '{{.apps.nats.host}}'
+                  - op: replace
+                    path: /spec/dnsNames/0
+                    value: '{{.apps.nats.host}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+        retry:
+          limit: 5
+          backoff:
+            duration: 5s
+            maxDuration: 3m
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: mimir
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - git:
+        repoURL: https://github.com/suckatrash/nats-argocd-stack.git
+        revision: HEAD
+        files:
+          - path: "clusters/*/config.yaml"
+  template:
+    metadata:
+      name: '{{.cluster.name}}-mimir'
+      annotations:
+        argocd.argoproj.io/sync-wave: "3"
+      finalizers:
+        - resources-finalizer.argocd.argoproj.io
+    spec:
+      project: default
+      destination:
+        server: '{{.cluster.server}}'
+        namespace: mimir
+      source:
+        repoURL: https://grafana.github.io/helm-charts
+        chart: mimir-distributed
+        targetRevision: 5.1.0
+        helm:
+          valuesObject:
+            mimir:
+              structuredConfig:
+                multitenancy_enabled: false
+                blocks_storage:
+                  backend: filesystem
+                  filesystem:
+                    dir: /data/blocks
+                compactor:
+                  data_dir: /data/compactor
+                  compaction_interval: 30m
+            ingester:
+              replicas: 1
+              persistentVolume:
+                enabled: true
+                size: 10Gi
+                storageClass: standard-rwo
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  cpu: 500m
+                  memory: 1Gi
+            querier:
+              replicas: 1
+            query_frontend:
+              replicas: 1
+            store_gateway:
+              replicas: 1
+              persistentVolume:
+                enabled: true
+                size: 5Gi
+                storageClass: standard-rwo
+            compactor:
+              replicas: 1
+              persistentVolume:
+                enabled: true
+                size: 5Gi
+                storageClass: standard-rwo
+            distributor:
+              replicas: 1
+            ruler:
+              enabled: false
+            alertmanager:
+              enabled: false
+            minio:
+              enabled: true
+              mode: standalone
+              persistence:
+                size: 10Gi
+                storageClass: standard-rwo
+            nginx:
+              enabled: false
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+        retry:
+          limit: 5
+          backoff:
+            duration: 5s
+            maxDuration: 3m
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: control-plane
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - git:
+        repoURL: https://github.com/suckatrash/nats-argocd-stack.git
+        revision: HEAD
+        files:
+          - path: "clusters/*/config.yaml"
+  template:
+    metadata:
+      name: '{{.cluster.name}}-control-plane'
+      annotations:
+        argocd.argoproj.io/sync-wave: "4"
+      finalizers:
+        - resources-finalizer.argocd.argoproj.io
+    spec:
+      project: default
+      destination:
+        server: '{{.cluster.server}}'
+        namespace: control-plane
+      source:
+        repoURL: https://github.com/suckatrash/nats-argocd-stack.git
+        targetRevision: HEAD
+        path: base/control-plane
+        kustomize:
+          patches:
+            - target:
+                kind: ServiceAccount
+                name: secret-generator
+              patch: |
+                - op: replace
+                  path: /metadata/annotations/iam.gke.io~1gcp-service-account
+                  value: 'external-secrets-sa@{{.gcp.project}}.iam.gserviceaccount.com'
+            - target:
+                kind: DatabaseInstance
+                name: control-plane-db
+              patch: |
+                - op: replace
+                  path: /spec/forProvider/region
+                  value: '{{.gcp.region}}'
+                - op: replace
+                  path: /spec/forProvider/settings/0/ipConfiguration/0/privateNetwork
+                  value: 'projects/{{.gcp.project}}/global/networks/{{.gcp.network}}'
+            - target:
+                kind: Ingress
+                name: control-plane
+              patch: |
+                - op: replace
+                  path: /spec/tls/0/hosts/0
+                  value: '{{.apps.controlPlane.host}}'
+                - op: replace
+                  path: /spec/rules/0/host
+                  value: '{{.apps.controlPlane.host}}'
+            - target:
+                kind: Certificate
+                name: control-plane-tls
+              patch: |
+                - op: replace
+                  path: /spec/dnsNames/0
+                  value: '{{.apps.controlPlane.host}}'
+            - target:
+                kind: ConfigMap
+                name: control-plane-entrypoint
+              patch: |
+                - op: replace
+                  path: /data/entrypoint.sh
+                  value: |
+                    #!/bin/sh
+                    set -e
+                    cat > /tmp/syn-cp.yaml <<EOF
+                    server:
+                      url: https://{{.apps.controlPlane.host}}
+                      tls:
+                        cert_file: /global-certs/tls.crt
+                        key_file: /global-certs/tls.key
+                    data_sources:
+                      postgres:
+                        dsn: ${POSTGRES_DSN}
+                    metrics:
+                      default_scrape_interval_seconds: 30
+                    kms:
+                      key_url: ${KMS_KEY_URL}
+                    EOF
+                    exec synadia-control-plane server start -c /tmp/syn-cp.yaml
+            - target:
+                kind: Deployment
+                name: control-plane
+              patch: |
+                - op: replace
+                  path: /spec/template/spec/containers/0/image
+                  value: '{{.apps.controlPlane.image}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+        retry:
+          limit: 5
+          backoff:
+            duration: 5s
+            maxDuration: 3m

@@ -1,0 +1,150 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: generate-db-client-cert
+  namespace: control-plane
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: secret-generator
+      containers:
+        - name: generate-cert
+          image: google/cloud-sdk:alpine
+          command:
+            - /bin/sh
+            - -c
+            - |
+              set -e
+
+              echo "Fetching project ID from metadata server..."
+              PROJECT_ID=$(curl -H "Metadata-Flavor: Google" "http://metadata.google.internal/computeMetadata/v1/project/project-id" 2>/dev/null || echo "")
+
+              if [ -z "$PROJECT_ID" ]; then
+                echo "Error: Could not retrieve project ID from metadata server"
+                exit 1
+              fi
+
+              echo "Using project: $PROJECT_ID"
+
+              apk add --no-cache kubectl coreutils
+
+              INSTANCE_NAME="control-plane-db"
+              CERT_NAME="control-plane-client-cert"
+              SECRET_NAME="control-plane-db-client-certs"
+              NAMESPACE="control-plane"
+              ROTATION_THRESHOLD_DAYS=90
+
+              create_certificate() {
+                local cert_name=$1
+                local cert_dir=$2
+
+                echo "Creating client certificate: $cert_name..."
+
+                gcloud sql ssl client-certs create $cert_name \
+                  $cert_dir/client-key.pem \
+                  --instance=$INSTANCE_NAME \
+                  --project=$PROJECT_ID
+
+                gcloud sql ssl client-certs describe $cert_name \
+                  --instance=$INSTANCE_NAME \
+                  --project=$PROJECT_ID \
+                  --format="get(cert)" > $cert_dir/client-cert.pem
+
+                echo "Downloading server CA certificate..."
+                gcloud sql ssl server-ca-certs list \
+                  --instance=$INSTANCE_NAME \
+                  --project=$PROJECT_ID \
+                  --limit=1 \
+                  --format="get(cert)" > $cert_dir/server-ca.pem
+
+                for file in client-key.pem client-cert.pem server-ca.pem; do
+                  if [ ! -s "$cert_dir/$file" ]; then
+                    echo "ERROR: $file was not created or is empty"
+                    return 1
+                  fi
+                done
+                return 0
+              }
+
+              echo "Checking if client certificate secret exists..."
+              SECRET_EXISTS=false
+              if kubectl get secret $SECRET_NAME -n $NAMESPACE &>/dev/null; then
+                SECRET_EXISTS=true
+              fi
+
+              echo "Checking existing certificates in Cloud SQL..."
+              EXISTING_CERT=$(gcloud sql ssl client-certs list \
+                --instance=$INSTANCE_NAME \
+                --project=$PROJECT_ID \
+                --format="value(commonName)" \
+                --filter="commonName:$CERT_NAME*" 2>/dev/null | head -1 || echo "")
+
+              NEEDS_ROTATION=false
+
+              if [ -n "$EXISTING_CERT" ]; then
+                echo "Certificate $EXISTING_CERT exists"
+                EXPIRATION=$(gcloud sql ssl client-certs describe $EXISTING_CERT \
+                  --instance=$INSTANCE_NAME \
+                  --project=$PROJECT_ID \
+                  --format="get(expirationTime)" 2>/dev/null || echo "")
+
+                if [ -n "$EXPIRATION" ]; then
+                  EXPIRATION_EPOCH=$(date -d "$EXPIRATION" +%s 2>/dev/null || echo "0")
+                  CURRENT_EPOCH=$(date +%s)
+                  THRESHOLD_EPOCH=$((CURRENT_EPOCH + ROTATION_THRESHOLD_DAYS * 86400))
+
+                  if [ "$EXPIRATION_EPOCH" -lt "$THRESHOLD_EPOCH" ]; then
+                    NEEDS_ROTATION=true
+                  fi
+                fi
+              else
+                NEEDS_ROTATION=true
+              fi
+
+              if [ "$NEEDS_ROTATION" = false ] && [ "$SECRET_EXISTS" = true ]; then
+                echo "Certificate is valid and secret exists, no action needed"
+                exit 0
+              fi
+
+              CERT_DIR=$(mktemp -d)
+
+              if [ "$NEEDS_ROTATION" = true ] && [ -n "$EXISTING_CERT" ]; then
+                TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+                NEW_CERT_NAME="${CERT_NAME}-${TIMESTAMP}"
+
+                if ! create_certificate "$NEW_CERT_NAME" "$CERT_DIR"; then
+                  rm -rf $CERT_DIR
+                  exit 1
+                fi
+
+                kubectl create secret generic $SECRET_NAME \
+                  -n $NAMESPACE \
+                  --from-file=client-key.pem=$CERT_DIR/client-key.pem \
+                  --from-file=client-cert.pem=$CERT_DIR/client-cert.pem \
+                  --from-file=server-ca.pem=$CERT_DIR/server-ca.pem \
+                  --dry-run=client -o yaml | kubectl apply -f -
+
+                gcloud sql ssl client-certs delete $EXISTING_CERT \
+                  --instance=$INSTANCE_NAME \
+                  --project=$PROJECT_ID \
+                  --quiet || true
+
+              else
+                if ! create_certificate "$CERT_NAME" "$CERT_DIR"; then
+                  rm -rf $CERT_DIR
+                  exit 1
+                fi
+
+                kubectl create secret generic $SECRET_NAME \
+                  -n $NAMESPACE \
+                  --from-file=client-key.pem=$CERT_DIR/client-key.pem \
+                  --from-file=client-cert.pem=$CERT_DIR/client-cert.pem \
+                  --from-file=server-ca.pem=$CERT_DIR/server-ca.pem
+              fi
+
+              rm -rf $CERT_DIR
+              echo "Certificate management completed successfully"

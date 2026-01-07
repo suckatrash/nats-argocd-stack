@@ -4,7 +4,7 @@ cluster:
 
 gcp:
   project: erik-sandbox-408216
-  region: us-west2
+  region: us-central1
   network: default
 
 dns:

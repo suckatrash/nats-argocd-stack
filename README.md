@@ -18,7 +18,7 @@ Hub Cluster (ArgoCD)
             ├── crossplane (wave 1)
             ├── external-dns (wave 1)
             ├── external-secrets (wave 1)
-            ├── mimir (wave 3)
+            ├── prometheus (wave 3)
             ├── nats (wave 3)
             └── control-plane (wave 4)
 ```
@@ -274,7 +274,7 @@ apps:
     enabled: true
     host: nats.my-cluster.example.com
     replicas: 3
-  mimir:
+  prometheus:
     enabled: true
 
 certManager:
@@ -327,7 +327,7 @@ argocd/
   hub-bootstrap.yaml      # Bootstrap app for hub
   applicationsets/
     infrastructure.yaml   # cert-manager, crossplane, external-secrets, external-dns
-    applications.yaml     # nats, mimir, control-plane
+    applications.yaml     # nats, prometheus, control-plane
 ```
 
 ## Sync Waves
@@ -337,7 +337,7 @@ argocd/
 | 0 | cert-manager, cert-manager-issuers |
 | 1 | crossplane, external-secrets, external-dns |
 | 2 | crossplane-provider + provider-config, external-secrets-stores |
-| 3 | nats, mimir |
+| 3 | nats, prometheus |
 | 4 | control-plane |
 
 ---

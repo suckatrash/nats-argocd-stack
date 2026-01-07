@@ -20,7 +20,7 @@ apps:
     enabled: true
     host: nats.gcp.iamusingtheinternet.com
     replicas: 3
-  mimir:
+  prometheus:
     enabled: true
 
 certManager:

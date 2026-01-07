@@ -1,41 +1,6 @@
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: infrastructure
-  namespace: argocd
-spec:
-  goTemplate: true
-  goTemplateOptions: ["missingkey=error"]
-  generators:
-    - git:
-        repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-        revision: HEAD
-        files:
-          - path: "clusters/*/config.yaml"
-  template:
-    metadata:
-      name: '{{.cluster.name}}-{{.app}}'
-    spec:
-      project: default
-      syncPolicy:
-        automated:
-          prune: true
-          selfHeal: true
-        syncOptions:
-          - CreateNamespace=true
-        retry:
-          limit: 5
-          backoff:
-            duration: 5s
-            maxDuration: 3m
-  templatePatch: |
-    metadata:
-      annotations:
-        argocd.argoproj.io/sync-wave: "{{.wave}}"
----
-apiVersion: argoproj.io/v1alpha1
-kind: ApplicationSet
-metadata:
   name: cert-manager
   namespace: argocd
 spec:

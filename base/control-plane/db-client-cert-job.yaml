@@ -6,6 +6,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "2"
 spec:
+  backoffLimit: 30
   ttlSecondsAfterFinished: 3600
   template:
     spec:
@@ -21,18 +22,39 @@ spec:
               set -e
 
               echo "Fetching project ID from metadata server..."
-              PROJECT_ID=$(curl -H "Metadata-Flavor: Google" "http://metadata.google.internal/computeMetadata/v1/project/project-id" 2>/dev/null || echo "")
+              PROJECT_ID=$(curl -s -H "Metadata-Flavor: Google" "http://metadata.google.internal/computeMetadata/v1/project/project-id" 2>/dev/null || echo "")
 
               if [ -z "$PROJECT_ID" ]; then
                 echo "Error: Could not retrieve project ID from metadata server"
                 exit 1
               fi
 
+              INSTANCE_NAME="control-plane-db"
+              
+              echo "Waiting for Cloud SQL instance to be ready..."
+              MAX_WAIT=1800  # 30 minutes
+              WAITED=0
+              while [ $WAITED -lt $MAX_WAIT ]; do
+                STATE=$(gcloud sql instances describe $INSTANCE_NAME --project=$PROJECT_ID --format="value(state)" 2>/dev/null || echo "PENDING")
+                if [ "$STATE" = "RUNNABLE" ]; then
+                  echo "Cloud SQL instance is ready"
+                  break
+                fi
+                echo "Instance state: $STATE, waiting... ($WAITED/$MAX_WAIT seconds)"
+                sleep 30
+                WAITED=$((WAITED + 30))
+              done
+
+              if [ "$STATE" != "RUNNABLE" ]; then
+                echo "Timeout waiting for Cloud SQL instance to be ready"
+                exit 1
+              fi
+
+              echo "Proceeding with certificate generation..."
               echo "Using project: $PROJECT_ID"
 
               apk add --no-cache kubectl coreutils
 
-              INSTANCE_NAME="control-plane-db"
               CERT_NAME="control-plane-client-cert"
               SECRET_NAME="control-plane-db-client-certs"
               NAMESPACE="control-plane"

@@ -5,10 +5,8 @@ metadata:
   namespace: control-plane
   annotations:
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    kubernetes.io/ingress.class: "gce"
 spec:
-  ingressClassName: nginx
   tls:
     - hosts:
         - app.example.com

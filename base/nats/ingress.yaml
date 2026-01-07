@@ -19,6 +19,6 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: nats
+                name: nats-headless
                 port:
                   number: 8222

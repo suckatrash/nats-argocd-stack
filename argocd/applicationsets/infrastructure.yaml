@@ -58,7 +58,7 @@ spec:
     metadata:
       name: '{{.cluster.name}}-cert-manager'
       annotations:
-        argocd.argoproj.io/sync-wave: "0"
+        argocd.argoproj.io/sync-wave: "1"
     spec:
       project: default
       destination:
@@ -100,7 +100,7 @@ spec:
     metadata:
       name: '{{.cluster.name}}-cert-manager-issuers'
       annotations:
-        argocd.argoproj.io/sync-wave: "1"
+        argocd.argoproj.io/sync-wave: "2"
     spec:
       project: default
       destination:
@@ -149,7 +149,7 @@ spec:
     metadata:
       name: '{{.cluster.name}}-crossplane'
       annotations:
-        argocd.argoproj.io/sync-wave: "1"
+        argocd.argoproj.io/sync-wave: "2"
     spec:
       project: default
       destination:
@@ -189,7 +189,7 @@ spec:
     metadata:
       name: '{{.cluster.name}}-crossplane-provider-config'
       annotations:
-        argocd.argoproj.io/sync-wave: "2"
+        argocd.argoproj.io/sync-wave: "3"
     spec:
       project: default
       destination:
@@ -234,7 +234,7 @@ spec:
     metadata:
       name: '{{.cluster.name}}-external-secrets'
       annotations:
-        argocd.argoproj.io/sync-wave: "1"
+        argocd.argoproj.io/sync-wave: "2"
     spec:
       project: default
       destination:
@@ -276,7 +276,7 @@ spec:
     metadata:
       name: '{{.cluster.name}}-external-secrets-stores'
       annotations:
-        argocd.argoproj.io/sync-wave: "2"
+        argocd.argoproj.io/sync-wave: "3"
     spec:
       project: default
       destination:
@@ -318,7 +318,7 @@ spec:
     metadata:
       name: '{{.cluster.name}}-external-dns'
       annotations:
-        argocd.argoproj.io/sync-wave: "1"
+        argocd.argoproj.io/sync-wave: "2"
     spec:
       project: default
       destination:

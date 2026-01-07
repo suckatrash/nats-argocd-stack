@@ -334,11 +334,12 @@ argocd/
 
 | Wave | Components |
 |------|------------|
-| 0 | cert-manager, cert-manager-issuers |
-| 1 | crossplane, external-secrets, external-dns |
-| 2 | crossplane-provider + provider-config, external-secrets-stores |
-| 3 | nats, prometheus |
-| 4 | control-plane |
+| 0 | ingress-nginx |
+| 1 | cert-manager |
+| 2 | cert-manager-issuers, crossplane, external-secrets, external-dns |
+| 3 | crossplane-provider-config, external-secrets-stores |
+| 4 | nats, prometheus |
+| 5 | control-plane |
 
 ---
 

@@ -16,7 +16,7 @@ spec:
     metadata:
       name: '{{.cluster.name}}-nats'
       annotations:
-        argocd.argoproj.io/sync-wave: "3"
+        argocd.argoproj.io/sync-wave: "4"
       finalizers:
         - resources-finalizer.argocd.argoproj.io
     spec:
@@ -140,7 +140,7 @@ spec:
     metadata:
       name: '{{.cluster.name}}-prometheus'
       annotations:
-        argocd.argoproj.io/sync-wave: "3"
+        argocd.argoproj.io/sync-wave: "4"
       finalizers:
         - resources-finalizer.argocd.argoproj.io
     spec:
@@ -204,7 +204,7 @@ spec:
     metadata:
       name: '{{.cluster.name}}-control-plane'
       annotations:
-        argocd.argoproj.io/sync-wave: "4"
+        argocd.argoproj.io/sync-wave: "5"
       finalizers:
         - resources-finalizer.argocd.argoproj.io
     spec:

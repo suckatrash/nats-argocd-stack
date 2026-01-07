@@ -97,6 +97,9 @@ spec:
                   - op: replace
                     path: /spec/rules/0/host
                     value: '{{.apps.nats.host}}'
+                  - op: replace
+                    path: /spec/rules/0/http/paths/0/backend/service/name
+                    value: '{{.cluster.name}}-nats'
               - target:
                   kind: Certificate
                   name: nats-tls

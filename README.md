@@ -31,7 +31,35 @@ Hub Cluster (ArgoCD)
 
 Complete these steps BEFORE setting up any clusters.
 
-### 1. Enable GCP APIs
+### 1. Create GKE Cluster with Workload Identity
+
+> **IMPORTANT**: Workload Identity MUST be enabled. Without it, external-dns, Crossplane jobs, and other GCP integrations will fail with `ACCESS_TOKEN_SCOPE_INSUFFICIENT` errors.
+
+**Via gcloud CLI:**
+```bash
+export PROJECT_ID="your-project"
+export CLUSTER_NAME="your-cluster"
+export REGION="us-west2"
+
+gcloud container clusters create $CLUSTER_NAME \
+    --region $REGION \
+    --workload-pool=${PROJECT_ID}.svc.id.goog \
+    --num-nodes=1
+```
+
+**Via GCP Console:**
+1. Go to Kubernetes Engine → Create Cluster
+2. In **Security** section, check **Enable Workload Identity**
+3. Set the Workload Identity pool to `<project-id>.svc.id.goog`
+
+**Verify Workload Identity is enabled:**
+```bash
+gcloud container clusters describe $CLUSTER_NAME --region $REGION \
+    --format="value(workloadIdentityConfig.workloadPool)"
+# Should output: your-project.svc.id.goog
+```
+
+### 2. Enable GCP APIs
 
 ```bash
 gcloud services enable \
@@ -43,7 +71,7 @@ gcloud services enable \
   servicenetworking.googleapis.com
 ```
 
-### 2. Private Services Access (for Cloud SQL)
+### 3. Private Services Access (for Cloud SQL)
 
 ```bash
 gcloud compute addresses create google-managed-services-default \
@@ -54,7 +82,7 @@ gcloud services vpc-peerings connect \
     --ranges=google-managed-services-default --network=default
 ```
 
-### 3. Create Service Accounts
+### 4. Create Service Accounts
 
 ```bash
 export PROJECT_ID="your-project"
@@ -83,7 +111,7 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
     --role="roles/dns.admin"
 ```
 
-### 4. Generate Service Account Keys
+### 5. Generate Service Account Keys
 
 ```bash
 export PROJECT_ID="your-project"
@@ -105,7 +133,7 @@ gcloud iam service-accounts keys create .keys/crossplane-sa.json \
 > - Consider Workload Identity for production
 > - Rotate regularly: `gcloud iam service-accounts keys list` / `delete` / `create`
 
-### 5. Workload Identity Bindings
+### 6. Workload Identity Bindings
 
 ```bash
 export PROJECT_ID="your-project"
@@ -123,7 +151,7 @@ gcloud iam service-accounts add-iam-policy-binding \
     --member="serviceAccount:${PROJECT_ID}.svc.id.goog[external-dns/external-dns]"
 ```
 
-### 6. GitHub Container Registry Credentials
+### 7. GitHub Container Registry Credentials
 
 Store GHCR credentials in Secret Manager for the control-plane image pull:
 
@@ -132,7 +160,7 @@ echo -n "your-github-username" | gcloud secrets create control-plane-ghcr-userna
 echo -n "ghp_your_token" | gcloud secrets create control-plane-ghcr-token --data-file=-
 ```
 
-### 7. Fork and Configure Repository
+### 8. Fork and Configure Repository
 
 ```bash
 # Fork this repo, then update the repoURL in:

@@ -337,8 +337,8 @@ argocd/
 | 0 | ingress-nginx |
 | 1 | cert-manager |
 | 2 | cert-manager-issuers, crossplane, external-secrets, external-dns |
-| 3 | crossplane-provider-config, external-secrets-stores |
-| 4 | nats, prometheus |
+| 3 | crossplane-providers, external-secrets-stores |
+| 4 | crossplane-config, nats, prometheus |
 | 5 | control-plane |
 
 ---

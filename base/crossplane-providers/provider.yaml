@@ -2,8 +2,6 @@ apiVersion: pkg.crossplane.io/v1
 kind: Provider
 metadata:
   name: provider-gcp-cloudplatform
-  annotations:
-    argocd.argoproj.io/sync-wave: "1"
 spec:
   package: xpkg.upbound.io/upbound/provider-gcp-cloudplatform:v1.8.1
   controllerConfigRef:
@@ -13,8 +11,6 @@ apiVersion: pkg.crossplane.io/v1
 kind: Provider
 metadata:
   name: provider-gcp-sql
-  annotations:
-    argocd.argoproj.io/sync-wave: "1"
 spec:
   package: xpkg.upbound.io/upbound/provider-gcp-sql:v1.8.1
   controllerConfigRef:

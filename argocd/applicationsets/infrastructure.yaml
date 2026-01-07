@@ -174,7 +174,7 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: crossplane-provider-config
+  name: crossplane-providers
   namespace: argocd
 spec:
   goTemplate: true
@@ -187,7 +187,7 @@ spec:
           - path: "clusters/*/config.yaml"
   template:
     metadata:
-      name: '{{.cluster.name}}-crossplane-provider-config'
+      name: '{{.cluster.name}}-crossplane-providers'
       annotations:
         argocd.argoproj.io/sync-wave: "3"
     spec:
@@ -198,7 +198,42 @@ spec:
       source:
         repoURL: https://github.com/suckatrash/nats-argocd-stack.git
         targetRevision: HEAD
-        path: base/crossplane
+        path: base/crossplane-providers
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - ServerSideApply=true
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: crossplane-config
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - git:
+        repoURL: https://github.com/suckatrash/nats-argocd-stack.git
+        revision: HEAD
+        files:
+          - path: "clusters/*/config.yaml"
+  template:
+    metadata:
+      name: '{{.cluster.name}}-crossplane-config'
+      annotations:
+        argocd.argoproj.io/sync-wave: "4"
+    spec:
+      project: default
+      destination:
+        server: '{{.cluster.server}}'
+        namespace: crossplane-system
+      source:
+        repoURL: https://github.com/suckatrash/nats-argocd-stack.git
+        targetRevision: HEAD
+        path: base/crossplane-config
         kustomize:
           patches:
             - target:

@@ -3,6 +3,8 @@ kind: PersistentVolumeClaim
 metadata:
   name: control-plane-data
   namespace: control-plane
+  annotations:
+    argocd.argoproj.io/sync-wave: "4"
 spec:
   accessModes:
     - ReadWriteOnce

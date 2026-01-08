@@ -137,7 +137,7 @@ apps:
 
     # Service configuration
     service:
-      type: ClusterIP
+      type: LoadBalancer
       ports:
         nats:
           enabled: true

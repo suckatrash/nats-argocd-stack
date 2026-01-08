@@ -127,6 +127,9 @@ spec:
               service:
                 enabled: true
                 merge:
+                  metadata:
+                    annotations:
+                      external-dns.alpha.kubernetes.io/hostname: "{{.apps.nats.host}}"
                   spec:
                     type: "{{.apps.nats.service.type}}"
                 ports:

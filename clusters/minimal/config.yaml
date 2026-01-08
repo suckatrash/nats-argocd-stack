@@ -22,6 +22,7 @@ apps:
   nats:
     enabled: true
     host: nats.gcp.iamusingtheinternet.com
+    monitoringHost: nats-mon.gcp.iamusingtheinternet.com
 
     # Container image
     image:

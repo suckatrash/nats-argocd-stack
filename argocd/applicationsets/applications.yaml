@@ -152,10 +152,10 @@ spec:
                 patch: |
                   - op: replace
                     path: /spec/tls/0/hosts/0
-                    value: '{{.apps.nats.host}}'
+                    value: '{{.apps.nats.monitoringHost}}'
                   - op: replace
                     path: /spec/rules/0/host
-                    value: '{{.apps.nats.host}}'
+                    value: '{{.apps.nats.monitoringHost}}'
                   - op: replace
                     path: /spec/rules/0/http/paths/0/backend/service/name
                     value: '{{.cluster.name}}-nats-headless'

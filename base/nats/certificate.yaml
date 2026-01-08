@@ -13,11 +13,6 @@ spec:
   commonName: nats.example.com
   dnsNames:
     - nats.example.com
-    - nats.nats.svc.cluster.local
-    - "*.nats.svc.cluster.local"
-    - nats-0.nats.nats.svc.cluster.local
-    - nats-1.nats.nats.svc.cluster.local
-    - nats-2.nats.nats.svc.cluster.local
   issuerRef:
     name: letsencrypt-prod
     kind: ClusterIssuer

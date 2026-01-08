@@ -58,7 +58,6 @@ spec:
                     cert: "{{.apps.nats.tls.cert}}"
                     key: "{{.apps.nats.tls.key}}"
                     merge:
-                      ca_file: "/etc/nats-certs/nats/{{.apps.nats.tls.ca}}"
                       verify: {{.apps.nats.tls.verify}}
                 websocket:
                   enabled: {{.apps.nats.websocket.enabled}}

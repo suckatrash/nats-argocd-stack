@@ -73,7 +73,6 @@ apps:
       secretName: nats-tls-cert
       cert: tls.crt
       key: tls.key
-      ca: ca.crt
       verify: false
 
     # WebSocket

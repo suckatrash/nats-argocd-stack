@@ -133,10 +133,29 @@ gcloud iam service-accounts keys create .keys/crossplane-sa.json \
 > - Consider Workload Identity for production
 > - Rotate regularly: `gcloud iam service-accounts keys list` / `delete` / `create`
 
-### 6. Workload Identity Bindings
+### 6. Create Cloud DNS Zone
+
+Create a Cloud DNS zone for your cluster's domain:
+
+```bash
+export DNS_ZONE_NAME="my-cluster-zone"
+export BASE_DOMAIN="my-cluster.example.com"
+
+gcloud dns managed-zones create $DNS_ZONE_NAME \
+    --dns-name="${BASE_DOMAIN}." \
+    --description="DNS zone for cluster"
+
+# Get the nameservers to configure at your domain registrar
+gcloud dns managed-zones describe $DNS_ZONE_NAME --format="value(nameServers)"
+```
+
+> **Note**: Update your domain registrar's NS records to point to the Cloud DNS nameservers.
+
+### 7. Workload Identity Bindings
 
 ```bash
 export PROJECT_ID="your-project"
+export CLUSTER_NAME="your-cluster"  # Must match cluster.name in config.yaml
 
 # For control-plane secret generator
 gcloud iam service-accounts add-iam-policy-binding \
@@ -149,9 +168,15 @@ gcloud iam service-accounts add-iam-policy-binding \
     external-dns@${PROJECT_ID}.iam.gserviceaccount.com \
     --role=roles/iam.workloadIdentityUser \
     --member="serviceAccount:${PROJECT_ID}.svc.id.goog[external-dns/external-dns]"
+
+# For cert-manager (DNS01 ACME challenges)
+gcloud iam service-accounts add-iam-policy-binding \
+    external-dns@${PROJECT_ID}.iam.gserviceaccount.com \
+    --role=roles/iam.workloadIdentityUser \
+    --member="serviceAccount:${PROJECT_ID}.svc.id.goog[cert-manager/${CLUSTER_NAME}-cert-manager]"
 ```
 
-### 7. GitHub Container Registry Credentials
+### 8. GitHub Container Registry Credentials
 
 Store GHCR credentials in Secret Manager for the control-plane image pull:
 
@@ -160,7 +185,7 @@ echo -n "your-github-username" | gcloud secrets create control-plane-ghcr-userna
 echo -n "ghp_your_token" | gcloud secrets create control-plane-ghcr-token --data-file=-
 ```
 
-### 8. Fork and Configure Repository
+### 9. Fork and Configure Repository
 
 ```bash
 # Fork this repo, then update the repoURL in:

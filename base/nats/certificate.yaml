@@ -14,7 +14,7 @@ spec:
   dnsNames:
     - nats.example.com
   issuerRef:
-    name: letsencrypt-prod
+    name: letsencrypt-staging
     kind: ClusterIssuer
   privateKey:
     algorithm: RSA

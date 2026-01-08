@@ -75,6 +75,9 @@ spec:
               requests:
                 cpu: 10m
                 memory: 32Mi
+            serviceAccount:
+              annotations:
+                iam.gke.io/gcp-service-account: external-dns@{{.gcp.project}}.iam.gserviceaccount.com
       syncPolicy:
         automated:
           prune: true

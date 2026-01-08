@@ -19,7 +19,7 @@ spec:
     - nats-1.nats.nats.svc.cluster.local
     - nats-2.nats.nats.svc.cluster.local
   issuerRef:
-    name: selfsigned
+    name: letsencrypt-prod
     kind: ClusterIssuer
   privateKey:
     algorithm: RSA

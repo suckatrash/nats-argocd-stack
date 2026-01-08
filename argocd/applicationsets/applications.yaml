@@ -158,6 +158,9 @@ spec:
                   - op: replace
                     path: /spec/rules/0/http/paths/0/backend/service/name
                     value: '{{.cluster.name}}-nats-headless'
+                  - op: replace
+                    path: /metadata/annotations/cert-manager.io~1cluster-issuer
+                    value: '{{.certManager.issuer}}'
               - target:
                   kind: Certificate
                   name: nats-tls
@@ -168,6 +171,9 @@ spec:
                   - op: replace
                     path: /spec/dnsNames/0
                     value: '{{.apps.nats.host}}'
+                  - op: replace
+                    path: /spec/issuerRef/name
+                    value: '{{.certManager.issuer}}'
       syncPolicy:
         automated:
           prune: true

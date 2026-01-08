@@ -29,116 +29,116 @@ spec:
           chart: nats
           targetRevision: 1.2.6
           helm:
-            valuesObject:
+            values: |
               config:
                 cluster:
-                  enabled: '{{.apps.nats.cluster.enabled}}'
-                  replicas: '{{.apps.nats.cluster.replicas}}'
+                  enabled: {{.apps.nats.cluster.enabled}}
+                  replicas: {{.apps.nats.cluster.replicas}}
                   tls:
-                    enabled: '{{.apps.nats.cluster.tls.enabled}}'
-                    secretName: '{{.apps.nats.cluster.tls.secretName}}'
+                    enabled: {{.apps.nats.cluster.tls.enabled}}
+                    secretName: "{{.apps.nats.cluster.tls.secretName}}"
                 jetstream:
-                  enabled: '{{.apps.nats.jetstream.enabled}}'
+                  enabled: {{.apps.nats.jetstream.enabled}}
                   fileStore:
-                    enabled: '{{.apps.nats.jetstream.fileStore.enabled}}'
-                    dir: '{{.apps.nats.jetstream.fileStore.dir}}'
+                    enabled: {{.apps.nats.jetstream.fileStore.enabled}}
+                    dir: "{{.apps.nats.jetstream.fileStore.dir}}"
                     pvc:
-                      enabled: '{{.apps.nats.jetstream.fileStore.pvc.enabled}}'
-                      size: '{{.apps.nats.jetstream.fileStore.pvc.size}}'
-                      storageClassName: '{{.apps.nats.jetstream.fileStore.pvc.storageClassName}}'
+                      enabled: {{.apps.nats.jetstream.fileStore.pvc.enabled}}
+                      size: "{{.apps.nats.jetstream.fileStore.pvc.size}}"
+                      storageClassName: "{{.apps.nats.jetstream.fileStore.pvc.storageClassName}}"
                   memoryStore:
-                    enabled: '{{.apps.nats.jetstream.memoryStore.enabled}}'
-                    maxSize: '{{.apps.nats.jetstream.memoryStore.maxSize}}'
+                    enabled: {{.apps.nats.jetstream.memoryStore.enabled}}
+                    maxSize: "{{.apps.nats.jetstream.memoryStore.maxSize}}"
                   merge:
-                    domain: '{{.apps.nats.jetstream.domain}}'
+                    domain: "{{.apps.nats.jetstream.domain}}"
                 nats:
                   tls:
-                    enabled: '{{.apps.nats.tls.enabled}}'
-                    secretName: '{{.apps.nats.tls.secretName}}'
-                    cert: '{{.apps.nats.tls.cert}}'
-                    key: '{{.apps.nats.tls.key}}'
+                    enabled: {{.apps.nats.tls.enabled}}
+                    secretName: "{{.apps.nats.tls.secretName}}"
+                    cert: "{{.apps.nats.tls.cert}}"
+                    key: "{{.apps.nats.tls.key}}"
                     merge:
-                      ca_file: '/etc/nats-certs/nats/{{.apps.nats.tls.ca}}'
-                      verify: '{{.apps.nats.tls.verify}}'
+                      ca_file: "/etc/nats-certs/nats/{{.apps.nats.tls.ca}}"
+                      verify: {{.apps.nats.tls.verify}}
                 websocket:
-                  enabled: '{{.apps.nats.websocket.enabled}}'
-                  port: '{{.apps.nats.websocket.port}}'
+                  enabled: {{.apps.nats.websocket.enabled}}
+                  port: {{.apps.nats.websocket.port}}
                   tls:
-                    enabled: '{{.apps.nats.websocket.tls.enabled}}'
-                    secretName: '{{.apps.nats.websocket.tls.secretName}}'
+                    enabled: {{.apps.nats.websocket.tls.enabled}}
+                    secretName: "{{.apps.nats.websocket.tls.secretName}}"
                 leafnodes:
-                  enabled: '{{.apps.nats.leafnodes.enabled}}'
-                  port: '{{.apps.nats.leafnodes.port}}'
+                  enabled: {{.apps.nats.leafnodes.enabled}}
+                  port: {{.apps.nats.leafnodes.port}}
                   tls:
-                    enabled: '{{.apps.nats.leafnodes.tls.enabled}}'
-                    secretName: '{{.apps.nats.leafnodes.tls.secretName}}'
+                    enabled: {{.apps.nats.leafnodes.tls.enabled}}
+                    secretName: "{{.apps.nats.leafnodes.tls.secretName}}"
                 gateway:
-                  enabled: '{{.apps.nats.gateway.enabled}}'
-                  port: '{{.apps.nats.gateway.port}}'
+                  enabled: {{.apps.nats.gateway.enabled}}
+                  port: {{.apps.nats.gateway.port}}
                   tls:
-                    enabled: '{{.apps.nats.gateway.tls.enabled}}'
-                    secretName: '{{.apps.nats.gateway.tls.secretName}}'
+                    enabled: {{.apps.nats.gateway.tls.enabled}}
+                    secretName: "{{.apps.nats.gateway.tls.secretName}}"
                   merge:
-                    name: '{{.apps.nats.gateway.name}}'
+                    name: "{{.apps.nats.gateway.name}}"
                 mqtt:
-                  enabled: '{{.apps.nats.mqtt.enabled}}'
-                  port: '{{.apps.nats.mqtt.port}}'
+                  enabled: {{.apps.nats.mqtt.enabled}}
+                  port: {{.apps.nats.mqtt.port}}
                   tls:
-                    enabled: '{{.apps.nats.mqtt.tls.enabled}}'
-                    secretName: '{{.apps.nats.mqtt.tls.secretName}}'
+                    enabled: {{.apps.nats.mqtt.tls.enabled}}
+                    secretName: "{{.apps.nats.mqtt.tls.secretName}}"
                 monitor:
-                  enabled: '{{.apps.nats.monitor.enabled}}'
-                  port: '{{.apps.nats.monitor.port}}'
+                  enabled: {{.apps.nats.monitor.enabled}}
+                  port: {{.apps.nats.monitor.port}}
                 resolver:
                   enabled: true
                   pvc:
-                    enabled: '{{.apps.nats.auth.resolver.pvc.enabled}}'
-                    size: '{{.apps.nats.auth.resolver.pvc.size}}'
-                    storageClassName: '{{.apps.nats.auth.resolver.pvc.storageClassName}}'
+                    enabled: {{.apps.nats.auth.resolver.pvc.enabled}}
+                    size: "{{.apps.nats.auth.resolver.pvc.size}}"
+                    storageClassName: "{{.apps.nats.auth.resolver.pvc.storageClassName}}"
                   merge:
-                    type: '{{.apps.nats.auth.resolver.type}}'
-                    interval: '{{.apps.nats.auth.resolver.interval}}'
-                    timeout: '{{.apps.nats.auth.resolver.timeout}}'
+                    type: "{{.apps.nats.auth.resolver.type}}"
+                    interval: "{{.apps.nats.auth.resolver.interval}}"
+                    timeout: "{{.apps.nats.auth.resolver.timeout}}"
                 merge:
-                  server_name: '{{.cluster.name}}-nats'
-                  operator: '{{.apps.nats.auth.operatorJwt}}'
-                  system_account: '{{.apps.nats.auth.sysAccountId}}'
+                  server_name: "{{.cluster.name}}-nats"
+                  operator: "{{.apps.nats.auth.operatorJwt}}"
+                  system_account: "{{.apps.nats.auth.sysAccountId}}"
                   resolver_preload:
-                    '{{.apps.nats.auth.sysAccountId}}': '{{.apps.nats.auth.sysAccountJwt}}'
+                    "{{.apps.nats.auth.sysAccountId}}": "{{.apps.nats.auth.sysAccountJwt}}"
               container:
                 image:
-                  repository: '{{.apps.nats.image.repository}}'
-                  tag: '{{.apps.nats.image.tag}}'
-                  pullPolicy: '{{.apps.nats.image.pullPolicy}}'
+                  repository: "{{.apps.nats.image.repository}}"
+                  tag: "{{.apps.nats.image.tag}}"
+                  pullPolicy: "{{.apps.nats.image.pullPolicy}}"
                 merge:
                   resources:
                     requests:
-                      cpu: '{{.apps.nats.resources.requests.cpu}}'
-                      memory: '{{.apps.nats.resources.requests.memory}}'
+                      cpu: "{{.apps.nats.resources.requests.cpu}}"
+                      memory: "{{.apps.nats.resources.requests.memory}}"
                     limits:
-                      cpu: '{{.apps.nats.resources.limits.cpu}}'
-                      memory: '{{.apps.nats.resources.limits.memory}}'
+                      cpu: "{{.apps.nats.resources.limits.cpu}}"
+                      memory: "{{.apps.nats.resources.limits.memory}}"
               natsBox:
-                enabled: '{{.apps.nats.natsbox.enabled}}'
+                enabled: {{.apps.nats.natsbox.enabled}}
                 container:
                   image:
-                    repository: '{{.apps.nats.natsbox.image.repository}}'
-                    tag: '{{.apps.nats.natsbox.image.tag}}'
-                    pullPolicy: '{{.apps.nats.natsbox.image.pullPolicy}}'
+                    repository: "{{.apps.nats.natsbox.image.repository}}"
+                    tag: "{{.apps.nats.natsbox.image.tag}}"
+                    pullPolicy: "{{.apps.nats.natsbox.image.pullPolicy}}"
               service:
                 enabled: true
                 merge:
                   spec:
-                    type: '{{.apps.nats.service.type}}'
+                    type: "{{.apps.nats.service.type}}"
                 ports:
                   nats:
-                    enabled: '{{.apps.nats.service.ports.nats.enabled}}'
+                    enabled: {{.apps.nats.service.ports.nats.enabled}}
                   leafnodes:
-                    enabled: '{{.apps.nats.service.ports.leafnodes.enabled}}'
+                    enabled: {{.apps.nats.service.ports.leafnodes.enabled}}
                   websocket:
-                    enabled: '{{.apps.nats.service.ports.websocket.enabled}}'
+                    enabled: {{.apps.nats.service.ports.websocket.enabled}}
                   mqtt:
-                    enabled: '{{.apps.nats.service.ports.mqtt.enabled}}'
+                    enabled: {{.apps.nats.service.ports.mqtt.enabled}}
         - repoURL: https://github.com/suckatrash/nats-argocd-stack.git
           targetRevision: HEAD
           path: base/nats

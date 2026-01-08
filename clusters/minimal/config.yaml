@@ -16,12 +16,137 @@ apps:
     enabled: true
     host: app.gcp.iamusingtheinternet.com
     image: ghcr.io/connecteverything/control-plane:1.8.1
+  prometheus:
+    enabled: true
+
   nats:
     enabled: true
     host: nats.gcp.iamusingtheinternet.com
-    replicas: 3
-  prometheus:
-    enabled: true
+
+    # Container image
+    image:
+      repository: nats
+      tag: 2.12.3
+      pullPolicy: IfNotPresent
+
+    auth:
+      operatorJwt: "eyJ0eXAiOiJKV1QiLCJhbGciOiJlZDI1NTE5LW5rZXkifQ.eyJqdGkiOiJHVU80MkdOWk9WUE1NRVVBTzZVQVhaWDRWNUczSlZKRUNQTERTTUg1TkM3QjJFN0VRVFpBIiwiaWF0IjoxNzY3ODkwOTYyLCJpc3MiOiJPQ1VNQ1pVUUlKQ0lLVVVGTjc0VkJLTUc3WExSV0RXUkM3UU9YWFg2WTdBRTZJU0VQQTMySVg2ViIsIm5hbWUiOiJ0ZXN0MDEiLCJzdWIiOiJPQ1VNQ1pVUUlKQ0lLVVVGTjc0VkJLTUc3WExSV0RXUkM3UU9YWFg2WTdBRTZJU0VQQTMySVg2ViIsIm5hdHMiOnsic2lnbmluZ19rZXlzIjpbIk9CRkxOVURWSUJSU0w1VElCVUZRS1NRN0k1QUwzTDdDSFZFWTdYRkVFVU5TVUpNRzJZMkdGTklNIl0sIm9wZXJhdG9yX3NlcnZpY2VfdXJscyI6WyJuYXRzOi8vbmF0cy5nY3AuaWFtdXNpbmd0aGVpbnRlcm5ldC5jb206NDIyMiJdLCJzeXN0ZW1fYWNjb3VudCI6IkFDTktZRFk3SE1TUFJZNlhCN0ZIUTNWQldNVVhQQ1YySUZQWUtaRzVTS1hYQjRGVFRCUUc0T0VMIiwidHlwZSI6Im9wZXJhdG9yIiwidmVyc2lvbiI6Mn19.btmh6qQxM7_bCKLeXajBxLbLQNZOfFStjnPBld3XZgq8NQAzDhRDUoaYI1dDuMD1mydQs5jAxL9ZYBh7MIjRDg"
+      sysAccountJwt: "eyJ0eXAiOiJKV1QiLCJhbGciOiJlZDI1NTE5LW5rZXkifQ.eyJqdGkiOiJZNDNOVjJUS0s3Q0xZNUhGSklEQUdPTFVER0REUUVTQjNRTE5LQVJWVTNUNURBUzdLVjdBIiwiaWF0IjoxNzY3ODkwOTYyLCJpc3MiOiJPQkZMTlVEVklCUlNMNVRJQlVGUUtTUTdJNUFMM0w3Q0hWRVk3WEZFRVVOU1VKTUcyWTJHRk5JTSIsIm5hbWUiOiJTWVMiLCJzdWIiOiJBQ05LWURZN0hNU1BSWTZYQjdGSFEzVkJXTVVYUENWMklGUFlLWkc1U0tYWEI0RlRUQlFHNE9FTCIsIm5hdHMiOnsiYXV0aG9yaXphdGlvbiI6e30sImRlZmF1bHRfcGVybWlzc2lvbnMiOnsicHViIjp7fSwic3ViIjp7fX0sImxpbWl0cyI6eyJjb25uIjotMSwiZGF0YSI6LTEsImV4cG9ydHMiOi0xLCJpbXBvcnRzIjotMSwibGVhZiI6LTEsInBheWxvYWQiOi0xLCJzdWJzIjotMSwid2lsZGNhcmRzIjp0cnVlfSwic2NwIjp7InN5c3RlbV9pZCI6IjM3ejFEMVl0WjBpQVNHeEZ2VnVLc1pueURVOCIsImFjY291bnRfaWQiOiIzN3oxRDRXSG8zaWF3dnJISjJGYTFQR3lzOGYifSwic2lnbmluZ19rZXlzIjpbIkFBM05RR1Y3V0JLTjZZS0RXNllHRkFFS1hMSEVNNEpXNkk0VlNBNUtGWUpDTFhENkVaR1MyQVpaIiwiQUQyQk5HWFY0V0hOMzc2VERSSklYREFYWDRNSzJQQ0RXUEs3WUtKR1NSUUZDQ1RQUFRES0NYT0IiXSwidHlwZSI6ImFjY291bnQiLCJ2ZXJzaW9uIjoyfX0.LW7zl4OaAkiXvL6xoxjNC5387snMjgoRt_fXtAk5eEnxz5tP2YfCvI3RAp_vG-G6-HyTr92KYjp6XePPkQbKAg"
+      sysAccountId: "ACNKYDY7HMSPRY6XB7FHQ3VBWMUXPCV2IFPYKZG5SKXXB4FTTBQG4OEL"
+      resolver:
+        type: full                    # full or cache
+        interval: 2m
+        timeout: 1.9s
+        pvc:
+          enabled: true
+          size: 1Gi
+          storageClassName: ""
+
+    # Clustering
+    cluster:
+      enabled: true
+      replicas: 3
+      tls:
+        enabled: false
+        secretName: ""
+
+    # JetStream
+    jetstream:
+      enabled: true
+      domain: "test01"                # e.g., spoke-minimal
+      fileStore:
+        enabled: true
+        dir: /data
+        pvc:
+          enabled: true
+          size: 10Gi
+          storageClassName: standard-rwo
+        maxSize: ""                   # defaults to PVC size
+      memoryStore:
+        enabled: true
+        maxSize: 1Gi
+
+    # Client TLS
+    tls:
+      enabled: true
+      secretName: nats-tls-cert
+      cert: tls.crt
+      key: tls.key
+      ca: ca.crt
+      verify: false
+
+    # WebSocket
+    websocket:
+      enabled: false
+      port: 8080
+      tls:
+        enabled: false
+        secretName: ""
+      ingress:
+        enabled: false
+        hosts: []
+
+    # Leaf Nodes
+    leafnodes:
+      enabled: false
+      port: 7422
+      tls:
+        enabled: false
+        secretName: ""
+      remotes: []                     # list of {url: "nats-leaf://...", credentials: {...}}
+
+    # Gateway (super-cluster)
+    gateway:
+      enabled: false
+      name: ""
+      port: 7222
+      tls:
+        enabled: false
+        secretName: ""
+      gateways: []                    # list of {name: "...", urls: [...]}
+
+    # MQTT
+    mqtt:
+      enabled: false
+      port: 1883
+      tls:
+        enabled: false
+        secretName: ""
+
+    # Monitoring
+    monitor:
+      enabled: true
+      port: 8222
+
+    # NATS Box (debug container)
+    natsbox:
+      enabled: true
+      image:
+        repository: natsio/nats-box
+        tag: 0.14.5
+        pullPolicy: IfNotPresent
+
+    # Container resources
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
+      limits:
+        cpu: 500m
+        memory: 512Mi
+
+    # Service configuration
+    service:
+      type: ClusterIP
+      ports:
+        nats:
+          enabled: true
+        leafnodes:
+          enabled: true
+        websocket:
+          enabled: true
+        mqtt:
+          enabled: true
 
 certManager:
   email: erik048@gmail.com

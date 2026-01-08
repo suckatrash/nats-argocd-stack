@@ -27,61 +27,118 @@ spec:
       sources:
         - repoURL: https://nats-io.github.io/k8s/helm/charts/
           chart: nats
-          targetRevision: 1.2.2
+          targetRevision: 1.2.6
           helm:
             valuesObject:
               config:
                 cluster:
-                  enabled: true
-                  replicas: '{{.apps.nats.replicas}}'
-                  name: 'nats-{{.cluster.name}}-cluster'
+                  enabled: '{{.apps.nats.cluster.enabled}}'
+                  replicas: '{{.apps.nats.cluster.replicas}}'
+                  tls:
+                    enabled: '{{.apps.nats.cluster.tls.enabled}}'
+                    secretName: '{{.apps.nats.cluster.tls.secretName}}'
                 jetstream:
-                  enabled: true
+                  enabled: '{{.apps.nats.jetstream.enabled}}'
                   fileStore:
+                    enabled: '{{.apps.nats.jetstream.fileStore.enabled}}'
+                    dir: '{{.apps.nats.jetstream.fileStore.dir}}'
                     pvc:
-                      size: 10Gi
-                      storageClassName: standard-rwo
-                    dir: /data/jetstream
-                  memStore:
-                    enabled: true
-                    maxSize: 1Gi
-                tls:
+                      enabled: '{{.apps.nats.jetstream.fileStore.pvc.enabled}}'
+                      size: '{{.apps.nats.jetstream.fileStore.pvc.size}}'
+                      storageClassName: '{{.apps.nats.jetstream.fileStore.pvc.storageClassName}}'
+                  memoryStore:
+                    enabled: '{{.apps.nats.jetstream.memoryStore.enabled}}'
+                    maxSize: '{{.apps.nats.jetstream.memoryStore.maxSize}}'
+                  merge:
+                    domain: '{{.apps.nats.jetstream.domain}}'
+                nats:
+                  tls:
+                    enabled: '{{.apps.nats.tls.enabled}}'
+                    secretName: '{{.apps.nats.tls.secretName}}'
+                    cert: '{{.apps.nats.tls.cert}}'
+                    key: '{{.apps.nats.tls.key}}'
+                    merge:
+                      ca_file: '/etc/nats-certs/nats/{{.apps.nats.tls.ca}}'
+                      verify: '{{.apps.nats.tls.verify}}'
+                websocket:
+                  enabled: '{{.apps.nats.websocket.enabled}}'
+                  port: '{{.apps.nats.websocket.port}}'
+                  tls:
+                    enabled: '{{.apps.nats.websocket.tls.enabled}}'
+                    secretName: '{{.apps.nats.websocket.tls.secretName}}'
+                leafnodes:
+                  enabled: '{{.apps.nats.leafnodes.enabled}}'
+                  port: '{{.apps.nats.leafnodes.port}}'
+                  tls:
+                    enabled: '{{.apps.nats.leafnodes.tls.enabled}}'
+                    secretName: '{{.apps.nats.leafnodes.tls.secretName}}'
+                gateway:
+                  enabled: '{{.apps.nats.gateway.enabled}}'
+                  port: '{{.apps.nats.gateway.port}}'
+                  tls:
+                    enabled: '{{.apps.nats.gateway.tls.enabled}}'
+                    secretName: '{{.apps.nats.gateway.tls.secretName}}'
+                  merge:
+                    name: '{{.apps.nats.gateway.name}}'
+                mqtt:
+                  enabled: '{{.apps.nats.mqtt.enabled}}'
+                  port: '{{.apps.nats.mqtt.port}}'
+                  tls:
+                    enabled: '{{.apps.nats.mqtt.tls.enabled}}'
+                    secretName: '{{.apps.nats.mqtt.tls.secretName}}'
+                monitor:
+                  enabled: '{{.apps.nats.monitor.enabled}}'
+                  port: '{{.apps.nats.monitor.port}}'
+                resolver:
                   enabled: true
-                  secretName: nats-tls-cert
-                  ca: ca.crt
-                  cert: tls.crt
-                  key: tls.key
-                  verify: false
+                  pvc:
+                    enabled: '{{.apps.nats.auth.resolver.pvc.enabled}}'
+                    size: '{{.apps.nats.auth.resolver.pvc.size}}'
+                    storageClassName: '{{.apps.nats.auth.resolver.pvc.storageClassName}}'
+                  merge:
+                    type: '{{.apps.nats.auth.resolver.type}}'
+                    interval: '{{.apps.nats.auth.resolver.interval}}'
+                    timeout: '{{.apps.nats.auth.resolver.timeout}}'
+                merge:
+                  server_name: '{{.cluster.name}}-nats'
+                  operator: '{{.apps.nats.auth.operatorJwt}}'
+                  system_account: '{{.apps.nats.auth.sysAccountId}}'
+                  resolver_preload:
+                    '{{.apps.nats.auth.sysAccountId}}': '{{.apps.nats.auth.sysAccountJwt}}'
               container:
                 image:
-                  repository: nats
-                  tag: 2.12.2
-                  pullPolicy: IfNotPresent
-                resources:
-                  requests:
-                    cpu: 100m
-                    memory: 128Mi
-                  limits:
-                    cpu: 500m
-                    memory: 512Mi
-              natsbox:
-                enabled: true
-                resources:
-                  requests:
-                    cpu: 10m
-                    memory: 32Mi
-                  limits:
-                    cpu: 100m
-                    memory: 128Mi
+                  repository: '{{.apps.nats.image.repository}}'
+                  tag: '{{.apps.nats.image.tag}}'
+                  pullPolicy: '{{.apps.nats.image.pullPolicy}}'
+                merge:
+                  resources:
+                    requests:
+                      cpu: '{{.apps.nats.resources.requests.cpu}}'
+                      memory: '{{.apps.nats.resources.requests.memory}}'
+                    limits:
+                      cpu: '{{.apps.nats.resources.limits.cpu}}'
+                      memory: '{{.apps.nats.resources.limits.memory}}'
+              natsBox:
+                enabled: '{{.apps.nats.natsbox.enabled}}'
+                container:
+                  image:
+                    repository: '{{.apps.nats.natsbox.image.repository}}'
+                    tag: '{{.apps.nats.natsbox.image.tag}}'
+                    pullPolicy: '{{.apps.nats.natsbox.image.pullPolicy}}'
               service:
                 enabled: true
+                merge:
+                  spec:
+                    type: '{{.apps.nats.service.type}}'
                 ports:
-                  client:
-                    port: 4222
-                  monitoring:
-                    port: 8222
-                  cluster:
-                    port: 6222
+                  nats:
+                    enabled: '{{.apps.nats.service.ports.nats.enabled}}'
+                  leafnodes:
+                    enabled: '{{.apps.nats.service.ports.leafnodes.enabled}}'
+                  websocket:
+                    enabled: '{{.apps.nats.service.ports.websocket.enabled}}'
+                  mqtt:
+                    enabled: '{{.apps.nats.service.ports.mqtt.enabled}}'
         - repoURL: https://github.com/suckatrash/nats-argocd-stack.git
           targetRevision: HEAD
           path: base/nats

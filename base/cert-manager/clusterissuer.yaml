@@ -9,12 +9,12 @@ spec:
     privateKeySecretRef:
       name: letsencrypt-staging-account-key
     solvers:
+      - dns01:
+          cloudDNS:
+            project: placeholder-project
       - http01:
           ingress:
             class: nginx
-      - dns01:
-          cloudDNS:
-            project: erik-sandbox-408216
 ---
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
@@ -27,12 +27,12 @@ spec:
     privateKeySecretRef:
       name: letsencrypt-prod-account-key
     solvers:
+      - dns01:
+          cloudDNS:
+            project: placeholder-project
       - http01:
           ingress:
             class: nginx
-      - dns01:
-          cloudDNS:
-            project: erik-sandbox-408216
 ---
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer

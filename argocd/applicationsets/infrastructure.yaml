@@ -122,6 +122,9 @@ spec:
                 - op: replace
                   path: /spec/acme/email
                   value: '{{.certManager.email}}'
+                - op: replace
+                  path: /spec/acme/solvers/0/dns01/cloudDNS/project
+                  value: '{{.gcp.project}}'
             - target:
                 kind: ClusterIssuer
                 name: letsencrypt-staging
@@ -129,6 +132,9 @@ spec:
                 - op: replace
                   path: /spec/acme/email
                   value: '{{.certManager.email}}'
+                - op: replace
+                  path: /spec/acme/solvers/0/dns01/cloudDNS/project
+                  value: '{{.gcp.project}}'
       syncPolicy:
         automated:
           prune: true

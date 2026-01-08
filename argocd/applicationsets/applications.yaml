@@ -100,7 +100,6 @@ spec:
                     interval: "{{.apps.nats.auth.resolver.interval}}"
                     timeout: "{{.apps.nats.auth.resolver.timeout}}"
                 merge:
-                  server_name: "{{.cluster.name}}-nats"
                   operator: "{{.apps.nats.auth.operatorJwt}}"
                   system_account: "{{.apps.nats.auth.sysAccountId}}"
                   resolver_preload:

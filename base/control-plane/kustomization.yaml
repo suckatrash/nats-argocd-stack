@@ -9,6 +9,7 @@ resources:
   - certificate.yaml
   - deployment.yaml
   - configmap.yaml
+  - ca-certificates-configmap.yaml
   - secret-generator-rbac.yaml
   - kms-key-generator.yaml
   - kms-externalsecret.yaml

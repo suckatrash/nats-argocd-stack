@@ -219,6 +219,7 @@ spec:
         helm:
           valuesObject:
             server:
+              fullnameOverride: '{{.cluster.name}}'
               persistentVolume:
                 enabled: true
                 size: 10Gi
@@ -334,6 +335,8 @@ spec:
                     data_sources:
                       postgres:
                         dsn: ${POSTGRES_DSN}
+                      prometheus:
+                        url: http://{{.cluster.name}}.prometheus.svc.cluster.local:80
                     metrics:
                       default_scrape_interval_seconds: 30
                     kms:
@@ -359,3 +362,57 @@ spec:
             duration: 30s
             factor: 2
             maxDuration: 5m
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: pdc-agent
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - git:
+        repoURL: https://github.com/suckatrash/nats-argocd-stack.git
+        revision: HEAD
+        files:
+          - path: "clusters/*/config.yaml"
+  template:
+    metadata:
+      name: '{{.cluster.name}}-pdc-agent'
+      annotations:
+        argocd.argoproj.io/sync-wave: "5"
+      finalizers:
+        - resources-finalizer.argocd.argoproj.io
+    spec:
+      project: default
+      destination:
+        server: '{{.cluster.server}}'
+        namespace: pdc-agent
+      source:
+        repoURL: https://github.com/suckatrash/nats-argocd-stack.git
+        targetRevision: HEAD
+        path: base/pdc-agent
+        kustomize:
+          patches:
+            - target:
+                kind: Deployment
+                name: pdc-agent
+              patch: |
+                - op: replace
+                  path: /spec/template/spec/containers/0/env/1/value
+                  value: '{{.apps.pdcAgent.cluster}}'
+                - op: replace
+                  path: /spec/template/spec/containers/0/env/2/value
+                  value: '{{.apps.pdcAgent.hostedGrafanaId}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+        retry:
+          limit: 5
+          backoff:
+            duration: 5s
+            maxDuration: 3m

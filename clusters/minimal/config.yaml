@@ -18,6 +18,11 @@ apps:
     image: ghcr.io/connecteverything/control-plane:1.8.1
   prometheus:
     enabled: true
+  pdcAgent:
+    enabled: true
+    hostedGrafanaId: "366672"
+    cluster: prod-us-central-0
+    # Requires 'grafana-pdc-token' secret in GCP Secret Manager
 
   nats:
     enabled: true

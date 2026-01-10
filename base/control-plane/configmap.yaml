@@ -16,6 +16,8 @@ data:
     data_sources:
       postgres:
         dsn: ${POSTGRES_DSN}
+      prometheus:
+        url: http://<cluster-name>.prometheus.svc.cluster.local:80
     metrics:
       default_scrape_interval_seconds: 30
     kms:

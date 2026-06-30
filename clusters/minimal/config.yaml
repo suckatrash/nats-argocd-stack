@@ -12,10 +12,6 @@ dns:
   zoneName: iamusingtheinternet-delegated
 
 apps:
-  controlPlane:
-    enabled: true
-    host: app.gcp.iamusingtheinternet.com
-    image: ghcr.io/connecteverything/control-plane:1.8.1
   prometheus:
     enabled: true
   pdcAgent:

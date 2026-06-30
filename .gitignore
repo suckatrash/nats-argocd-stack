@@ -10,6 +10,7 @@ credentials.json
 *.crt
 !ca.crt
 .keys/
+*.creds
 
 # Kubernetes
 kubeconfig

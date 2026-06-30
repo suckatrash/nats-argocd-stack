@@ -9,7 +9,7 @@ spec:
   generators:
     - git:
         repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-        revision: HEAD
+        revision: simplify-stack
         files:
           - path: "clusters/*/config.yaml"
   template:
@@ -51,7 +51,7 @@ spec:
   generators:
     - git:
         repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-        revision: HEAD
+        revision: simplify-stack
         files:
           - path: "clusters/*/config.yaml"
   template:
@@ -96,7 +96,7 @@ spec:
   generators:
     - git:
         repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-        revision: HEAD
+        revision: simplify-stack
         files:
           - path: "clusters/*/config.yaml"
   template:
@@ -111,7 +111,7 @@ spec:
         namespace: cert-manager
       source:
         repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-        targetRevision: HEAD
+        targetRevision: simplify-stack
         path: base/cert-manager
         kustomize:
           patches:
@@ -143,126 +143,6 @@ spec:
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet
 metadata:
-  name: crossplane
-  namespace: argocd
-spec:
-  goTemplate: true
-  goTemplateOptions: ["missingkey=error"]
-  generators:
-    - git:
-        repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-        revision: HEAD
-        files:
-          - path: "clusters/*/config.yaml"
-  template:
-    metadata:
-      name: '{{.cluster.name}}-crossplane'
-      annotations:
-        argocd.argoproj.io/sync-wave: "2"
-    spec:
-      project: default
-      destination:
-        server: '{{.cluster.server}}'
-        namespace: crossplane-system
-      source:
-        repoURL: https://charts.crossplane.io/stable
-        chart: crossplane
-        targetRevision: 1.14.5
-        helm:
-          valuesObject:
-            args:
-              - --enable-composition-revisions
-      syncPolicy:
-        automated:
-          prune: true
-          selfHeal: true
-        syncOptions:
-          - CreateNamespace=true
-          - ServerSideApply=true
----
-apiVersion: argoproj.io/v1alpha1
-kind: ApplicationSet
-metadata:
-  name: crossplane-providers
-  namespace: argocd
-spec:
-  goTemplate: true
-  goTemplateOptions: ["missingkey=error"]
-  generators:
-    - git:
-        repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-        revision: HEAD
-        files:
-          - path: "clusters/*/config.yaml"
-  template:
-    metadata:
-      name: '{{.cluster.name}}-crossplane-providers'
-      annotations:
-        argocd.argoproj.io/sync-wave: "3"
-    spec:
-      project: default
-      destination:
-        server: '{{.cluster.server}}'
-        namespace: crossplane-system
-      source:
-        repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-        targetRevision: HEAD
-        path: base/crossplane-providers
-      syncPolicy:
-        automated:
-          prune: true
-          selfHeal: true
-        syncOptions:
-          - ServerSideApply=true
----
-apiVersion: argoproj.io/v1alpha1
-kind: ApplicationSet
-metadata:
-  name: crossplane-config
-  namespace: argocd
-spec:
-  goTemplate: true
-  goTemplateOptions: ["missingkey=error"]
-  generators:
-    - git:
-        repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-        revision: HEAD
-        files:
-          - path: "clusters/*/config.yaml"
-  template:
-    metadata:
-      name: '{{.cluster.name}}-crossplane-config'
-      annotations:
-        argocd.argoproj.io/sync-wave: "4"
-    spec:
-      project: default
-      destination:
-        server: '{{.cluster.server}}'
-        namespace: crossplane-system
-      source:
-        repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-        targetRevision: HEAD
-        path: base/crossplane-config
-        kustomize:
-          patches:
-            - target:
-                kind: ProviderConfig
-                name: default
-              patch: |
-                - op: replace
-                  path: /spec/projectID
-                  value: '{{.gcp.project}}'
-      syncPolicy:
-        automated:
-          prune: true
-          selfHeal: true
-        syncOptions:
-          - ServerSideApply=true
-          - SkipDryRunOnMissingResource=true
----
-apiVersion: argoproj.io/v1alpha1
-kind: ApplicationSet
-metadata:
   name: external-secrets
   namespace: argocd
 spec:
@@ -271,7 +151,7 @@ spec:
   generators:
     - git:
         repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-        revision: HEAD
+        revision: simplify-stack
         files:
           - path: "clusters/*/config.yaml"
   template:
@@ -313,7 +193,7 @@ spec:
   generators:
     - git:
         repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-        revision: HEAD
+        revision: simplify-stack
         files:
           - path: "clusters/*/config.yaml"
   template:
@@ -328,7 +208,7 @@ spec:
         namespace: external-secrets
       source:
         repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-        targetRevision: HEAD
+        targetRevision: simplify-stack
         path: base/external-secrets
         kustomize:
           patches:
@@ -355,7 +235,7 @@ spec:
   generators:
     - git:
         repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-        revision: HEAD
+        revision: simplify-stack
         files:
           - path: "clusters/*/config.yaml"
   template:

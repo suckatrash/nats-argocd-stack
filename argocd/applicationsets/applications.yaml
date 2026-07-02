@@ -9,7 +9,7 @@ spec:
   generators:
     - git:
         repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-        revision: simplify-stack
+        revision: add-test-fixtures
         files:
           - path: "clusters/*/config.yaml"
   template:
@@ -197,7 +197,7 @@ spec:
   generators:
     - git:
         repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-        revision: simplify-stack
+        revision: add-test-fixtures
         files:
           - path: "clusters/*/config.yaml"
   template:
@@ -262,7 +262,7 @@ spec:
   generators:
     - git:
         repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-        revision: simplify-stack
+        revision: add-test-fixtures
         files:
           - path: "clusters/*/config.yaml"
   template:
@@ -316,7 +316,7 @@ spec:
   generators:
     - git:
         repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-        revision: simplify-stack
+        revision: add-test-fixtures
         files:
           - path: "clusters/*/config.yaml"
   template:
@@ -367,7 +367,7 @@ spec:
   generators:
     - git:
         repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-        revision: simplify-stack
+        revision: add-test-fixtures
         files:
           - path: "clusters/*/config.yaml"
   template:

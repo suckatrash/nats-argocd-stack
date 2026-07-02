@@ -304,3 +304,133 @@ spec:
           backoff:
             duration: 5s
             maxDuration: 3m
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: insights
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - git:
+        repoURL: https://github.com/suckatrash/nats-argocd-stack.git
+        revision: simplify-stack
+        files:
+          - path: "clusters/*/config.yaml"
+  template:
+    metadata:
+      name: '{{.cluster.name}}-insights'
+      annotations:
+        argocd.argoproj.io/sync-wave: "5"
+      finalizers:
+        - resources-finalizer.argocd.argoproj.io
+    spec:
+      project: default
+      destination:
+        server: '{{.cluster.server}}'
+        namespace: insights
+      source:
+        repoURL: https://github.com/suckatrash/nats-argocd-stack.git
+        targetRevision: simplify-stack
+        path: base/insights
+        kustomize:
+          patches:
+            - target:
+                kind: Deployment
+                name: insights
+              patch: |
+                - op: replace
+                  path: /spec/template/spec/containers/0/image
+                  value: '{{.apps.insights.image}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+        retry:
+          limit: 5
+          backoff:
+            duration: 5s
+            maxDuration: 3m
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: order-pipeline
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - git:
+        repoURL: https://github.com/suckatrash/nats-argocd-stack.git
+        revision: simplify-stack
+        files:
+          - path: "clusters/*/config.yaml"
+  template:
+    metadata:
+      name: '{{.cluster.name}}-order-pipeline'
+      annotations:
+        argocd.argoproj.io/sync-wave: "6"
+      finalizers:
+        - resources-finalizer.argocd.argoproj.io
+    spec:
+      project: default
+      destination:
+        server: '{{.cluster.server}}'
+        namespace: order-pipeline
+      source:
+        repoURL: https://github.com/suckatrash/nats-argocd-stack.git
+        targetRevision: simplify-stack
+        path: base/order-pipeline
+        kustomize:
+          patches:
+            - target:
+                kind: Deployment
+                name: order-api
+              patch: |
+                - op: replace
+                  path: /spec/template/spec/containers/0/image
+                  value: '{{.apps.orderPipeline.image}}'
+            - target:
+                kind: Deployment
+                name: processor
+              patch: |
+                - op: replace
+                  path: /spec/template/spec/containers/0/image
+                  value: '{{.apps.orderPipeline.image}}'
+            - target:
+                kind: Deployment
+                name: notifier
+              patch: |
+                - op: replace
+                  path: /spec/template/spec/containers/0/image
+                  value: '{{.apps.orderPipeline.image}}'
+            - target:
+                kind: Deployment
+                name: analytics
+              patch: |
+                - op: replace
+                  path: /spec/template/spec/containers/0/image
+                  value: '{{.apps.orderPipeline.image}}'
+            - target:
+                kind: ConfigMap
+                name: order-pipeline-config
+              patch: |
+                - op: replace
+                  path: /data/ORDER_RATE
+                  value: '{{.apps.orderPipeline.orderRate}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+        retry:
+          limit: 5
+          backoff:
+            duration: 5s
+            maxDuration: 3m

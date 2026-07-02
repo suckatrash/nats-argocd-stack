@@ -20,6 +20,16 @@ apps:
     cluster: prod-us-central-0
     # Requires 'grafana-pdc-token' secret in GCP Secret Manager
 
+  insights:
+    enabled: true
+    image: us-central1-docker.pkg.dev/erik-sandbox-408216/insights/insights:latest
+    # Requires 'insights-sys-creds' and 'insights-license-jwt' secrets in GCP Secret Manager
+
+  orderPipeline:
+    enabled: true
+    image: us-central1-docker.pkg.dev/erik-sandbox-408216/insights/order-pipeline:latest
+    orderRate: "20"
+
   nats:
     enabled: true
     host: nats1.gcp.iamusingtheinternet.com

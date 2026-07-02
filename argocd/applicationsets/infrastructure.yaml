@@ -111,7 +111,7 @@ spec:
         namespace: cert-manager
       source:
         repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-        targetRevision: simplify-stack
+        targetRevision: add-test-fixtures
         path: base/cert-manager
         kustomize:
           patches:
@@ -208,7 +208,7 @@ spec:
         namespace: external-secrets
       source:
         repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-        targetRevision: simplify-stack
+        targetRevision: add-test-fixtures
         path: base/external-secrets
         kustomize:
           patches:

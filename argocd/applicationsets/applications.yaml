@@ -141,7 +141,7 @@ spec:
                   mqtt:
                     enabled: {{.apps.nats.service.ports.mqtt.enabled}}
         - repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-          targetRevision: simplify-stack
+          targetRevision: add-test-fixtures
           path: base/nats
           kustomize:
             patches:
@@ -279,7 +279,7 @@ spec:
         namespace: pdc-agent
       source:
         repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-        targetRevision: simplify-stack
+        targetRevision: add-test-fixtures
         path: base/pdc-agent
         kustomize:
           patches:
@@ -333,7 +333,7 @@ spec:
         namespace: insights
       source:
         repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-        targetRevision: simplify-stack
+        targetRevision: add-test-fixtures
         path: base/insights
         kustomize:
           patches:
@@ -384,7 +384,7 @@ spec:
         namespace: order-pipeline
       source:
         repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-        targetRevision: simplify-stack
+        targetRevision: add-test-fixtures
         path: base/order-pipeline
         kustomize:
           patches:

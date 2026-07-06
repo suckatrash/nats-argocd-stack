@@ -352,7 +352,7 @@ spec:
                   path: /data/insights.yaml
                   value: |
                     nats:
-                      url: nats://{{.apps.nats.host}}:4222
+                      server: nats://{{.apps.nats.host}}:4222
                       creds: /etc/insights/creds/sys.creds
                     sys:
                       server: nats://{{.apps.nats.host}}:4222

@@ -6,7 +6,7 @@ metadata:
 data:
   insights.yaml: |
     nats:
-      url: nats://minimal-nats.nats.svc.cluster.local:4222
+      url: nats://nats1.gcp.iamusingtheinternet.com:4222
       creds: /etc/insights/creds/sys.creds
     data-dir: /data
     scraper:

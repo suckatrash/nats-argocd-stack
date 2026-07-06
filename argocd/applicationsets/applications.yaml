@@ -352,7 +352,7 @@ spec:
                   path: /data/insights.yaml
                   value: |
                     nats:
-                      url: nats://{{.cluster.name}}-nats.nats.svc.cluster.local:4222
+                      url: nats://{{.apps.nats.host}}:4222
                       creds: /etc/insights/creds/sys.creds
                     data-dir: /data
                     scraper:
@@ -436,7 +436,7 @@ spec:
               patch: |
                 - op: replace
                   path: /data/NATS_URL
-                  value: 'nats://{{.cluster.name}}-nats.nats.svc.cluster.local:4222'
+                  value: 'nats://{{.apps.nats.host}}:4222'
                 - op: replace
                   path: /data/ORDER_RATE
                   value: '{{.apps.orderPipeline.orderRate}}'

@@ -358,6 +358,10 @@ spec:
                       server: nats://{{.apps.nats.host}}:4222
                       creds: /etc/insights/creds/sys.creds
                     data-dir: /data
+                    web:
+                      hostname: "0.0.0.0"
+                    prometheus:
+                      hostname: "0.0.0.0"
                     scraper:
                       interval: 1m
                     log-level: info

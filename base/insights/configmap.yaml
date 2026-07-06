@@ -8,6 +8,9 @@ data:
     nats:
       url: nats://nats1.gcp.iamusingtheinternet.com:4222
       creds: /etc/insights/creds/sys.creds
+    sys:
+      server: nats://nats1.gcp.iamusingtheinternet.com:4222
+      creds: /etc/insights/creds/sys.creds
     data-dir: /data
     scraper:
       interval: 1m

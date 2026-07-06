@@ -26,6 +26,10 @@ spec:
           envFrom:
             - configMapRef:
                 name: order-pipeline-config
+          volumeMounts:
+            - name: nats-creds
+              mountPath: /etc/nats/creds
+              readOnly: true
           livenessProbe:
             httpGet:
               path: /healthz
@@ -38,3 +42,7 @@ spec:
             limits:
               cpu: 200m
               memory: 128Mi
+      volumes:
+        - name: nats-creds
+          secret:
+            secretName: orders-nats-creds

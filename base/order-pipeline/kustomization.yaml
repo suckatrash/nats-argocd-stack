@@ -3,6 +3,7 @@ kind: Kustomization
 resources:
   - namespace.yaml
   - configmap.yaml
+  - externalsecret.yaml
   - deployment-order-api.yaml
   - deployment-processor.yaml
   - deployment-notifier.yaml

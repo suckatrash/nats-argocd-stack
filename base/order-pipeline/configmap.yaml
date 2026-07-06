@@ -5,4 +5,5 @@ metadata:
   namespace: order-pipeline
 data:
   NATS_URL: "nats://CLUSTER_NAME-nats.nats.svc.cluster.local:4222"
+  NATS_CREDS: "/etc/nats/creds/admin.creds"
   ORDER_RATE: "20"

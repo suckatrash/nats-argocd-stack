@@ -357,6 +357,8 @@ spec:
                     sys:
                       server: nats://{{.apps.nats.host}}:4222
                       creds: /etc/insights/creds/sys.creds
+                    sink:
+                      embed: false
                     data-dir: /data
                     web:
                       hostname: "0.0.0.0"

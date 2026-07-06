@@ -344,6 +344,20 @@ spec:
                 - op: replace
                   path: /spec/template/spec/containers/0/image
                   value: '{{.apps.insights.image}}'
+            - target:
+                kind: ConfigMap
+                name: insights-config
+              patch: |
+                - op: replace
+                  path: /data/insights.yaml
+                  value: |
+                    nats:
+                      url: nats://{{.cluster.name}}-nats.nats.svc.cluster.local:4222
+                      creds: /etc/insights/creds/sys.creds
+                    data-dir: /data
+                    scraper:
+                      interval: 1m
+                    log-level: info
       syncPolicy:
         automated:
           prune: true
@@ -420,6 +434,9 @@ spec:
                 kind: ConfigMap
                 name: order-pipeline-config
               patch: |
+                - op: replace
+                  path: /data/NATS_URL
+                  value: 'nats://{{.cluster.name}}-nats.nats.svc.cluster.local:4222'
                 - op: replace
                   path: /data/ORDER_RATE
                   value: '{{.apps.orderPipeline.orderRate}}'

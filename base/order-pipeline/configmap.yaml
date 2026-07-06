@@ -4,5 +4,5 @@ metadata:
   name: order-pipeline-config
   namespace: order-pipeline
 data:
-  NATS_URL: "nats://nats.nats.svc.cluster.local:4222"
+  NATS_URL: "nats://CLUSTER_NAME-nats.nats.svc.cluster.local:4222"
   ORDER_RATE: "20"

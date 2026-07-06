@@ -33,14 +33,12 @@ spec:
               containerPort: 9091
               protocol: TCP
           livenessProbe:
-            httpGet:
-              path: /ping
+            tcpSocket:
               port: http
             initialDelaySeconds: 30
             periodSeconds: 10
           readinessProbe:
-            httpGet:
-              path: /ping
+            tcpSocket:
               port: http
             initialDelaySeconds: 10
             periodSeconds: 5

@@ -367,7 +367,7 @@ spec:
                     scraper:
                       nats:
                         server: nats://{{.apps.nats.host}}:4222
-                        creds: /etc/insights/creds/sys.creds
+                        creds: /etc/insights/creds/sink.creds
                       interval: 1m
                     log-level: info
       syncPolicy:

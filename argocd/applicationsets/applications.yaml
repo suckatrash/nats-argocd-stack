@@ -354,6 +354,9 @@ spec:
                     nats:
                       url: nats://{{.apps.nats.host}}:4222
                       creds: /etc/insights/creds/sys.creds
+                    sys:
+                      server: nats://{{.apps.nats.host}}:4222
+                      creds: /etc/insights/creds/sys.creds
                     data-dir: /data
                     scraper:
                       interval: 1m

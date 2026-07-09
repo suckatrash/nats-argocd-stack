@@ -9,7 +9,7 @@ spec:
   generators:
     - git:
         repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-        revision: add-test-fixtures
+        revision: main
         files:
           - path: "clusters/*/config.yaml"
   template:
@@ -141,7 +141,7 @@ spec:
                   mqtt:
                     enabled: {{.apps.nats.service.ports.mqtt.enabled}}
         - repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-          targetRevision: add-test-fixtures
+          targetRevision: main
           path: base/nats
           kustomize:
             patches:
@@ -197,7 +197,7 @@ spec:
   generators:
     - git:
         repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-        revision: add-test-fixtures
+        revision: main
         files:
           - path: "clusters/*/config.yaml"
   template:
@@ -262,7 +262,7 @@ spec:
   generators:
     - git:
         repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-        revision: add-test-fixtures
+        revision: main
         files:
           - path: "clusters/*/config.yaml"
   template:
@@ -279,7 +279,7 @@ spec:
         namespace: pdc-agent
       source:
         repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-        targetRevision: add-test-fixtures
+        targetRevision: main
         path: base/pdc-agent
         kustomize:
           patches:
@@ -316,7 +316,7 @@ spec:
   generators:
     - git:
         repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-        revision: add-test-fixtures
+        revision: main
         files:
           - path: "clusters/*/config.yaml"
   template:
@@ -333,7 +333,7 @@ spec:
         namespace: insights
       source:
         repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-        targetRevision: add-test-fixtures
+        targetRevision: main
         path: base/insights
         kustomize:
           patches:
@@ -393,7 +393,7 @@ spec:
   generators:
     - git:
         repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-        revision: add-test-fixtures
+        revision: main
         files:
           - path: "clusters/*/config.yaml"
   template:
@@ -410,7 +410,7 @@ spec:
         namespace: order-pipeline
       source:
         repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-        targetRevision: add-test-fixtures
+        targetRevision: main
         path: base/order-pipeline
         kustomize:
           patches:

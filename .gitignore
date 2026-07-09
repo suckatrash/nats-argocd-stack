@@ -38,7 +38,7 @@ charts/
 /dist/
 /build/
 /out/
-/action/impact-analysis
+/action/action
 *.log
 
 # Temp files

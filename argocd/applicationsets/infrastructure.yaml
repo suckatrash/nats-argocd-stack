@@ -9,7 +9,7 @@ spec:
   generators:
     - git:
         repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-        revision: add-test-fixtures
+        revision: main
         files:
           - path: "clusters/*/config.yaml"
   template:
@@ -51,7 +51,7 @@ spec:
   generators:
     - git:
         repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-        revision: add-test-fixtures
+        revision: main
         files:
           - path: "clusters/*/config.yaml"
   template:
@@ -96,7 +96,7 @@ spec:
   generators:
     - git:
         repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-        revision: add-test-fixtures
+        revision: main
         files:
           - path: "clusters/*/config.yaml"
   template:
@@ -111,7 +111,7 @@ spec:
         namespace: cert-manager
       source:
         repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-        targetRevision: add-test-fixtures
+        targetRevision: main
         path: base/cert-manager
         kustomize:
           patches:
@@ -151,7 +151,7 @@ spec:
   generators:
     - git:
         repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-        revision: add-test-fixtures
+        revision: main
         files:
           - path: "clusters/*/config.yaml"
   template:
@@ -193,7 +193,7 @@ spec:
   generators:
     - git:
         repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-        revision: add-test-fixtures
+        revision: main
         files:
           - path: "clusters/*/config.yaml"
   template:
@@ -208,7 +208,7 @@ spec:
         namespace: external-secrets
       source:
         repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-        targetRevision: add-test-fixtures
+        targetRevision: main
         path: base/external-secrets
         kustomize:
           patches:
@@ -235,7 +235,7 @@ spec:
   generators:
     - git:
         repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-        revision: add-test-fixtures
+        revision: main
         files:
           - path: "clusters/*/config.yaml"
   template:

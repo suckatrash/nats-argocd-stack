@@ -10,6 +10,7 @@ credentials.json
 *.crt
 !ca.crt
 .keys/
+*.creds
 
 # Kubernetes
 kubeconfig
@@ -37,7 +38,7 @@ charts/
 /dist/
 /build/
 /out/
-/action/impact-analysis
+/action/action
 *.log
 
 # Temp files

@@ -129,6 +129,12 @@ apps:
       enabled: true
       port: 8222
 
+    # Prometheus exporter sidecar (varz/connz/routez/subz, jsz when
+    # JetStream is enabled); scraped via pod annotations
+    promExporter:
+      enabled: true
+      port: 7777
+
     # NATS Box (debug container)
     natsbox:
       enabled: true

@@ -103,6 +103,17 @@ spec:
                   system_account: "{{.apps.nats.auth.sysAccountId}}"
                   resolver_preload:
                     "{{.apps.nats.auth.sysAccountId}}": "{{.apps.nats.auth.sysAccountJwt}}"
+              promExporter:
+                enabled: {{.apps.nats.promExporter.enabled}}
+                port: {{.apps.nats.promExporter.port}}
+              # The lab Prometheus discovers scrape targets by pod annotation
+              # (no prometheus-operator CRDs, so podMonitor is unavailable).
+              podTemplate:
+                merge:
+                  metadata:
+                    annotations:
+                      prometheus.io/scrape: "{{.apps.nats.promExporter.enabled}}"
+                      prometheus.io/port: "{{.apps.nats.promExporter.port}}"
               container:
                 image:
                   repository: "{{.apps.nats.image.repository}}"
@@ -220,17 +231,25 @@ spec:
           valuesObject:
             server:
               fullnameOverride: '{{.cluster.name}}'
+              # Bound the TSDB below the 10Gi PV so retention, not disk
+              # exhaustion, is the limiting factor.
+              retention: 15d
+              retentionSize: 8GB
               persistentVolume:
                 enabled: true
                 size: 10Gi
                 storageClass: standard-rwo
+              # 512Mi OOM-killed the server during WAL replay, which crash-looped
+              # the app and grew the WAL further. Requests stay modest so the pod
+              # schedules on the small default pool; the limit gives replay and
+              # compaction headroom.
               resources:
                 requests:
                   cpu: 100m
-                  memory: 256Mi
+                  memory: 512Mi
                 limits:
                   cpu: 500m
-                  memory: 512Mi
+                  memory: 1536Mi
             alertmanager:
               enabled: false
             kube-state-metrics:

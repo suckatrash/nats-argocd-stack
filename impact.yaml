@@ -1,0 +1,23 @@
+# Configuration for the impact CLI, run on pull requests by
+# .github/workflows/impact-analysis.yml via the composite action in
+# suckatrash/nats-order-pipeline (which vendors the CLI source).
+#
+# ${VAR} references expand from the environment at load time. The Anthropic
+# API key is picked up from ANTHROPIC_API_KEY automatically.
+
+agent:
+  provider: anthropic
+  model: claude-opus-4-8
+
+datasources:
+  insights:
+    # The Insights query API over NATS ($INS.db.*).
+    endpoint: ${INSIGHTS_NATS_SERVER}
+    creds: ${INSIGHTS_NATS_CREDS}
+  prometheus:
+    # Infrastructure-layer metrics for the lab cluster this repo deploys:
+    # kube-state-metrics, node-exporter, and the NATS prom-exporter sidecar.
+    # Basic auth is enforced at the ingress.
+    url: https://prometheus.gcp.iamusingtheinternet.com
+    username: impact
+    password: ${PROMETHEUS_PASSWORD}

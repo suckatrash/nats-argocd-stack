@@ -38,7 +38,6 @@ charts/
 /dist/
 /build/
 /out/
-/action/action
 *.log
 
 # Temp files

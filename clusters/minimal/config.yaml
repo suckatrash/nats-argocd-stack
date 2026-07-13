@@ -168,3 +168,5 @@ apps:
 certManager:
   email: erik048@gmail.com
   issuer: letsencrypt-prod
+
+# Impact-analysis validation: benign comment-only change.

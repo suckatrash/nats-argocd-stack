@@ -73,7 +73,7 @@ apps:
           enabled: true
           size: 10Gi
           storageClassName: standard-rwo
-        maxSize: ""                   # defaults to PVC size
+        maxSize: "4Gi"                # cap below PVC size to leave filesystem headroom
       memoryStore:
         enabled: true
         maxSize: 1Gi

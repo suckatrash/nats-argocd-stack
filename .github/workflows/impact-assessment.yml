@@ -1,4 +1,4 @@
-name: Impact Analysis
+name: Impact Assessment
 
 on:
   pull_request:
@@ -8,7 +8,7 @@ on:
       - 'argocd/**'
 
 jobs:
-  analyze:
+  assess:
     runs-on: ubuntu-latest
     permissions:
       pull-requests: write
@@ -32,7 +32,9 @@ jobs:
       # The composite action builds the impact CLI from source vendored in the
       # nats-order-pipeline repo and runs it against impact.yaml at this repo's
       # root; ${VAR} references in the config expand from the env it sets.
-      - name: Run impact analysis
+      # fail_on gates the merge: the step exits 2 when the derived risk level
+      # meets the threshold, so a HIGH/CRITICAL report fails the check.
+      - name: Run impact assessment
         uses: suckatrash/nats-order-pipeline/action@main
         with:
           diff_file: /tmp/change.diff
@@ -41,13 +43,17 @@ jobs:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           prometheus_password: ${{ secrets.PROMETHEUS_PASSWORD }}
           output_file: /tmp/report.md
+          fail_on: high
 
       # Publishing the report is the caller's job — the tool itself never
-      # talks to GitHub.
+      # talks to GitHub. always(): the report matters most on the runs the
+      # fail_on gate just failed, so post it whenever one was produced.
       - name: Post PR comment
-        if: success()
+        if: always()
         run: |
-          gh pr comment ${{ github.event.pull_request.number }} \
-            --body-file /tmp/report.md
+          if [ -f /tmp/report.md ]; then
+            gh pr comment ${{ github.event.pull_request.number }} \
+              --body-file /tmp/report.md
+          fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

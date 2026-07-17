@@ -44,7 +44,10 @@ spec:
             periodSeconds: 5
           resources:
             requests:
-              cpu: 100m
+              # Zone-us-central1-f node (where the data PVC pins this pod) runs
+              # hot on CPU requests; keep this small so the pod fits. The 2-core
+              # limit below still lets it burst.
+              cpu: 25m
               memory: 512Mi
             limits:
               cpu: "2"

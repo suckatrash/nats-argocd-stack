@@ -40,9 +40,11 @@ spec:
             initialDelaySeconds: 5
             periodSeconds: 10
           resources:
+            # Trimmed requests so it schedules on a tight cluster; in-memory
+            # storage with this demo's low trace volume stays well under the limit.
             requests:
-              cpu: 100m
-              memory: 256Mi
+              cpu: 50m
+              memory: 128Mi
             limits:
-              cpu: 500m
-              memory: 512Mi
+              cpu: 300m
+              memory: 384Mi

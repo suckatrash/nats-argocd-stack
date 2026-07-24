@@ -26,6 +26,10 @@ spec:
               value: "true"
             - name: SPAN_STORAGE_TYPE
               value: memory
+            # In-memory storage is unbounded by default and OOM-kills under load.
+            # Cap the retained traces so memory stays flat (demo keeps recent ones).
+            - name: MEMORY_MAX_TRACES
+              value: "20000"
           ports:
             - name: ui
               containerPort: 16686
@@ -47,4 +51,4 @@ spec:
               memory: 128Mi
             limits:
               cpu: 300m
-              memory: 384Mi
+              memory: 512Mi

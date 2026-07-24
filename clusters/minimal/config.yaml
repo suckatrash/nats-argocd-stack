@@ -30,6 +30,16 @@ apps:
     image: us-central1-docker.pkg.dev/erik-sandbox-408216/insights/order-pipeline:latest
     orderRate: "20"
 
+  otelCollector:
+    enabled: true
+    # Custom ocb-built image with the natscore components (built from the
+    # opentelemetry-collector-nats repo, deploy/). Use an immutable tag.
+    image: us-central1-docker.pkg.dev/erik-sandbox-408216/insights/otelcol-nats:latest
+
+  jaeger:
+    enabled: true
+    # Public jaegertracing/all-in-one image; pinned in base/jaeger/deployment.yaml.
+
   nats:
     enabled: true
     host: nats1.gcp.iamusingtheinternet.com

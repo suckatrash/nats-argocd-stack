@@ -1,0 +1,43 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: otel-stream-setup
+  namespace: otel-collector
+spec:
+  backoffLimit: 10
+  template:
+    metadata:
+      labels:
+        app: otel-stream-setup
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: setup
+          image: natsio/nats-box:0.14.5
+          command: ["sh", "-c"]
+          # Idempotently ensure the OTEL_TEST stream (subject otel_test) exists.
+          # The collector's natscore components never create streams. The pod
+          # won't start until the creds secret volume is mounted, so no ArgoCD
+          # sync-hook ordering is needed.
+          args:
+            - |
+              set -e
+              SRV=tls://nats1.gcp.iamusingtheinternet.com:4222
+              CREDS=/etc/nats/creds/collector.creds
+              if nats --server "$SRV" --creds "$CREDS" --js-domain test01 stream info OTEL_TEST >/dev/null 2>&1; then
+                echo "OTEL_TEST already exists"
+              else
+                nats --server "$SRV" --creds "$CREDS" --js-domain test01 \
+                  stream add OTEL_TEST --subjects=otel_test \
+                  --storage=file --replicas=1 --retention=limits --discard=old \
+                  --max-age=1h --defaults
+                echo "OTEL_TEST created"
+              fi
+          volumeMounts:
+            - name: nats-creds
+              mountPath: /etc/nats/creds
+              readOnly: true
+      volumes:
+        - name: nats-creds
+          secret:
+            secretName: otel-collector-nats-creds

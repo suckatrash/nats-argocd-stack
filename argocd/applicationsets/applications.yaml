@@ -518,3 +518,96 @@ spec:
           backoff:
             duration: 5s
             maxDuration: 3m
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: jaeger
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - git:
+        repoURL: https://github.com/suckatrash/nats-argocd-stack.git
+        revision: main
+        files:
+          - path: "clusters/*/config.yaml"
+  template:
+    metadata:
+      name: '{{.cluster.name}}-jaeger'
+      annotations:
+        argocd.argoproj.io/sync-wave: "5"
+      finalizers:
+        - resources-finalizer.argocd.argoproj.io
+    spec:
+      project: default
+      destination:
+        server: '{{.cluster.server}}'
+        namespace: jaeger
+      source:
+        repoURL: https://github.com/suckatrash/nats-argocd-stack.git
+        targetRevision: main
+        path: base/jaeger
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+        retry:
+          limit: 5
+          backoff:
+            duration: 5s
+            maxDuration: 3m
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: otel-collector
+  namespace: argocd
+spec:
+  goTemplate: true
+  goTemplateOptions: ["missingkey=error"]
+  generators:
+    - git:
+        repoURL: https://github.com/suckatrash/nats-argocd-stack.git
+        revision: main
+        files:
+          - path: "clusters/*/config.yaml"
+  template:
+    metadata:
+      name: '{{.cluster.name}}-otel-collector'
+      annotations:
+        argocd.argoproj.io/sync-wave: "5"
+      finalizers:
+        - resources-finalizer.argocd.argoproj.io
+    spec:
+      project: default
+      destination:
+        server: '{{.cluster.server}}'
+        namespace: otel-collector
+      source:
+        repoURL: https://github.com/suckatrash/nats-argocd-stack.git
+        targetRevision: main
+        path: base/otel-collector
+        kustomize:
+          patches:
+            - target:
+                kind: Deployment
+                name: otel-collector
+              patch: |
+                - op: replace
+                  path: /spec/template/spec/containers/0/image
+                  value: '{{.apps.otelCollector.image}}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=true
+        retry:
+          limit: 5
+          backoff:
+            duration: 5s
+            maxDuration: 3m

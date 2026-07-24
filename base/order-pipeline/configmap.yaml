@@ -7,3 +7,6 @@ data:
   NATS_URL: "nats://CLUSTER_NAME-nats.nats.svc.cluster.local:4222"
   NATS_CREDS: "/etc/nats/creds/admin.creds"
   ORDER_RATE: "20"
+  # Enables OpenTelemetry tracing: the services export OTLP to the in-cluster
+  # collector, which transports the traces over NATS to Jaeger. Unset => no-op.
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector.otel-collector.svc.cluster.local:4318"

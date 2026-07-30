@@ -48,7 +48,7 @@ apps:
     # Container image
     image:
       repository: nats
-      tag: 2.14.3
+      tag: 2.14.4
       pullPolicy: IfNotPresent
 
     auth:

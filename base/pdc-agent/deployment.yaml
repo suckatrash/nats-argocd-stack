@@ -26,8 +26,8 @@ spec:
         fsGroup: 30000
       containers:
         - name: pdc-agent
-          image: grafana/pdc-agent:latest
-          imagePullPolicy: Always
+          image: grafana/pdc-agent:0.0.61
+          imagePullPolicy: IfNotPresent
           args:
             - "-cluster"
             - "$(CLUSTER)"
@@ -51,7 +51,7 @@ spec:
               memory: 128Mi
             limits:
               cpu: 500m
-              memory: 512Mi
+              memory: 256Mi
           securityContext:
             allowPrivilegeEscalation: false
             capabilities:

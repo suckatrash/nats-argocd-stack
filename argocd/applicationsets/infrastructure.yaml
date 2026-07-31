@@ -171,6 +171,15 @@ spec:
         helm:
           valuesObject:
             installCRDs: true
+            # Stamp ArgoCD's Prune=false onto every external-secrets CRD.
+            # Their v0.20 schemas are huge and ArgoCD's server-side apply can
+            # time out ("context deadline exceeded"); without this a failed
+            # sync could prune secretstores/clustersecretstores out from under
+            # the controller, breaking every ExternalSecret. Belt-and-braces
+            # with ServerSideApply below.
+            crds:
+              annotations:
+                argocd.argoproj.io/sync-options: Prune=false
             resources:
               requests:
                 cpu: 10m

@@ -181,6 +181,11 @@ spec:
           selfHeal: true
         syncOptions:
           - CreateNamespace=true
+          # external-secrets v0.20 CRD schemas exceed the 256KB
+          # last-applied-configuration annotation limit; client-side apply
+          # can't even create secretstores/clustersecretstores. SSA avoids
+          # the annotation entirely.
+          - ServerSideApply=true
 ---
 apiVersion: argoproj.io/v1alpha1
 kind: ApplicationSet

@@ -22,7 +22,7 @@ apps:
 
   insights:
     enabled: true
-    image: us-central1-docker.pkg.dev/erik-sandbox-408216/insights/insights:111111
+    image: us-central1-docker.pkg.dev/erik-sandbox-408216/insights/insights:249f7b5
     # Requires 'insights-sys-creds' and 'insights-license-jwt' secrets in GCP Secret Manager
 
   orderPipeline:

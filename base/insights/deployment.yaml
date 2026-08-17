@@ -25,25 +25,12 @@ spec:
             - "run"
             - "--config"
             - "/etc/insights/config/insights.yaml"
-          env:
-            # TEMPORARY (INS-187 verification): enable the DuckDB web UI to
-            # observe the external-access posture with the UI on. The UI needs
-            # external access, so this deliberately relaxes the INS-187
-            # hardening for the whole process (local file read + SSRF surface is
-            # open). start_ui_server() fetches the ui extension over the network
-            # on boot; if egress is blocked the pod will crashloop. Remove this
-            # env var (revert the commit) to return to the hardened posture.
-            - name: INSIGHTS_DB_ENABLE_UI
-              value: "true"
           ports:
             - name: http
               containerPort: 8080
               protocol: TCP
             - name: metrics
               containerPort: 9091
-              protocol: TCP
-            - name: duckdb-ui
-              containerPort: 4213
               protocol: TCP
           livenessProbe:
             tcpSocket:

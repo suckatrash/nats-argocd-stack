@@ -423,8 +423,8 @@ spec:
                       nats:
                         server: nats://{{.apps.nats.host}}:4222
                         creds: /etc/insights/creds/sink.creds
-                      interval: 10s
-                    log-level: debug
+                      interval: 1m
+                    log-level: info
       syncPolicy:
         automated:
           prune: true

@@ -13,5 +13,5 @@ data:
       creds: /etc/insights/creds/sys.creds
     data-dir: /data
     scraper:
-      interval: 10s # temporary: overrun-grid experiment
-    log-level: debug
+      interval: 1m
+    log-level: info

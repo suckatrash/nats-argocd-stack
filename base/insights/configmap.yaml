@@ -13,5 +13,5 @@ data:
       creds: /etc/insights/creds/sys.creds
     data-dir: /data
     scraper:
-      interval: 1m
-    log-level: info
+      interval: 10s
+    log-level: debug

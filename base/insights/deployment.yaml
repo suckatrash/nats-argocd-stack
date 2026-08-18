@@ -25,23 +25,12 @@ spec:
             - "run"
             - "--config"
             - "/etc/insights/config/insights.yaml"
-          env:
-            # DuckDB web UI enabled for exploration. Requires the dynamically-linked
-            # image (insights:INS-187) — the static image SIGFPEs when DuckDB
-            # dlopen's the ui extension. Enabling the UI relaxes the external-access
-            # hardening for this process (local file read + SSRF surface is open),
-            # so keep this off the hardened production posture.
-            - name: INSIGHTS_DB_ENABLE_UI
-              value: "true"
           ports:
             - name: http
               containerPort: 8080
               protocol: TCP
             - name: metrics
               containerPort: 9091
-              protocol: TCP
-            - name: duckdb-ui
-              containerPort: 4213
               protocol: TCP
           livenessProbe:
             tcpSocket:

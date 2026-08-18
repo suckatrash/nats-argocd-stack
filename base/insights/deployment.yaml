@@ -25,25 +25,12 @@ spec:
             - "run"
             - "--config"
             - "/etc/insights/config/insights.yaml"
-          env:
-            # TEMPORARY (INS-187 verification): enable the DuckDB web UI. Requires
-            # the dynamically-linked image (insights:INS-187) — the static image
-            # SIGFPEs when DuckDB dlopen's the ui extension (the same static-host
-            # jemalloc crash Dockerfile.dynamic exists to avoid). Enabling the UI
-            # deliberately relaxes the INS-187 external-access hardening for this
-            # process (local file read + SSRF surface is open). Remove this env
-            # (and revert to the static image) to return to the hardened posture.
-            - name: INSIGHTS_DB_ENABLE_UI
-              value: "true"
           ports:
             - name: http
               containerPort: 8080
               protocol: TCP
             - name: metrics
               containerPort: 9091
-              protocol: TCP
-            - name: duckdb-ui
-              containerPort: 4213
               protocol: TCP
           livenessProbe:
             tcpSocket:

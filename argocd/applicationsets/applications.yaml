@@ -386,51 +386,86 @@ spec:
       destination:
         server: '{{.cluster.server}}'
         namespace: insights
-      source:
-        repoURL: https://github.com/suckatrash/nats-argocd-stack.git
-        targetRevision: main
-        path: base/insights
-        kustomize:
-          patches:
-            - target:
-                kind: Deployment
-                name: insights
-              patch: |
-                - op: replace
-                  path: /spec/template/spec/containers/0/image
-                  value: '{{.apps.insights.image}}'
-            - target:
-                kind: ConfigMap
-                name: insights-config
-              patch: |
-                - op: replace
-                  path: /data/insights.yaml
-                  value: |
-                    nats:
-                      server: nats://{{.apps.nats.host}}:4222
-                      creds: /etc/insights/creds/sys.creds
-                    sys:
-                      server: nats://{{.apps.nats.host}}:4222
-                      creds: /etc/insights/creds/sys.creds
-                    sink:
-                      embed: false
-                    data-dir: /data
-                    web:
-                      hostname: "0.0.0.0"
-                    prometheus:
-                      hostname: "0.0.0.0"
-                    scraper:
-                      nats:
-                        server: nats://{{.apps.nats.host}}:4222
-                        creds: /etc/insights/creds/sink.creds
-                      interval: 1m
-                    log-level: info
+      sources:
+        # Public Synadia insights Helm chart. Tracks the insights-session-seed
+        # branch (under PR review) rather than a published chart version.
+        - repoURL: https://github.com/synadia-io/helm-charts.git
+          targetRevision: insights-session-seed
+          path: charts/insights
+          helm:
+            releaseName: insights
+            values: |
+              image:
+                registry: {{.apps.insights.image.registry}}
+                repository: {{.apps.insights.image.repository}}
+                tag: {{.apps.insights.image.tag}}
+              persistence:
+                enabled: true
+                size: 10Gi
+                storageClass: standard-rwo
+              # Zone-us-central1-f node (where the data PVC pins this pod) runs
+              # hot on CPU requests; keep the request small so the pod fits. The
+              # 2-core limit still lets it burst.
+              resources:
+                requests:
+                  cpu: 25m
+                  memory: 512Mi
+                limits:
+                  cpu: "2"
+                  memory: 1.5Gi
+              # Written verbatim to /etc/insights/config.yaml by the chart.
+              config:
+                data-dir: /var/lib/insights
+                log-level: info
+                web:
+                  hostname: "0.0.0.0"
+                prometheus:
+                  hostname: "0.0.0.0"
+                nats:
+                  server: nats://{{.apps.nats.host}}:4222
+                  creds: /etc/insights/creds/sys.creds
+                sys:
+                  server: nats://{{.apps.nats.host}}:4222
+                  creds: /etc/insights/creds/sys.creds
+                sink:
+                  embed: false
+                scraper:
+                  nats:
+                    server: nats://{{.apps.nats.host}}:4222
+                    creds: /etc/insights/creds/sink.creds
+                  interval: 1m
+              # Mount the ExternalSecret-managed NATS creds (sys.creds,
+              # sink.creds) referenced by config above.
+              extraVolumes:
+                - name: creds
+                  secret:
+                    secretName: insights-nats-creds
+                    defaultMode: 0400
+              extraVolumeMounts:
+                - name: creds
+                  mountPath: /etc/insights/creds
+                  readOnly: true
+        # Namespace + ExternalSecret that the chart does not manage.
+        - repoURL: https://github.com/suckatrash/nats-argocd-stack.git
+          targetRevision: main
+          path: base/insights
+      # The chart reads its generated web session seed back on upgrade via Helm
+      # `lookup`, which returns empty under ArgoCD (server-side helm template has
+      # no cluster access) — so the seed would regenerate on every reconcile,
+      # restart the pod, and invalidate sessions. Pin the live seed instead.
+      ignoreDifferences:
+        - group: ""
+          kind: Secret
+          name: insights-session
+          jsonPointers:
+            - /data
       syncPolicy:
         automated:
           prune: true
           selfHeal: true
         syncOptions:
           - CreateNamespace=true
+          - RespectIgnoreDifferences=true
         retry:
           limit: 5
           backoff:

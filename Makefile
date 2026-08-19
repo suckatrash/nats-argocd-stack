@@ -14,16 +14,24 @@ help:
 
 # Roll the insights deployment to an immutable image tag. Build+push the image
 # first (tagged with a short git SHA), then: make roll-insights TAG=abc1234
-# This rewrites the insights image line in $(CONFIG), commits, and pushes to
+# This rewrites the insights image tag in $(CONFIG), commits, and pushes to
 # main. Argo's automated sync picks the commit up on its own — no PR, so the
 # impact-assessment gate (pull_request only) does not run. COMMIT/PUSH default
 # on; pass PUSH=0 to stop before pushing, or COMMIT=0 to only edit the file.
+#
+# insights runs from the Synadia Helm chart, so the image is expressed as
+# apps.insights.image.{registry,repository,tag}. This rewrites the `tag:` line
+# that immediately follows `repository: insights` — matching that pair avoids
+# touching any other app's image tag (e.g. nats).
 roll-insights:
 	@test -n "$(TAG)" || { echo "TAG is required, e.g. make roll-insights TAG=$$(git rev-parse --short HEAD)"; exit 1; }
-	@grep -q '/insights/insights:' $(CONFIG) || { echo "Could not find insights image line in $(CONFIG)"; exit 1; }
-	@sed -i.bak -E 's#(/insights/insights:)[^"[:space:]]+#\1$(TAG)#' $(CONFIG) && rm -f $(CONFIG).bak
+	@grep -qE '^      repository: insights$$' $(CONFIG) || { echo "Could not find insights image block in $(CONFIG)"; exit 1; }
+	@awk -v tag='$(TAG)' '\
+		/^      repository: insights$$/ { in_ins=1 } \
+		in_ins && /^      tag:/ { sub(/tag:.*/, "tag: " tag); in_ins=0 } \
+		{ print }' $(CONFIG) > $(CONFIG).tmp && mv $(CONFIG).tmp $(CONFIG)
 	@echo "Pinned insights image to :$(TAG)"
-	@grep -n '/insights/insights:' $(CONFIG)
+	@awk '/^      repository: insights$$/ { f=1 } f && /^      tag:/ { print NR": "$$0; f=0 }' $(CONFIG)
 	@if [ "$(COMMIT)" != "0" ]; then \
 		git add $(CONFIG); \
 		git commit -m "insights: roll image to insights:$(TAG)"; \

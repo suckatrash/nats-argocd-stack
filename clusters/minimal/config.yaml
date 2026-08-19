@@ -22,8 +22,14 @@ apps:
 
   insights:
     enabled: true
-    image: us-central1-docker.pkg.dev/erik-sandbox-408216/insights/insights:v0.2.0-rc.5
-    # Requires 'insights-sys-creds' and 'insights-license-jwt' secrets in GCP Secret Manager
+    # Deployed via the public Synadia insights Helm chart
+    # (github.com/synadia-io/helm-charts, charts/insights). Image is split into
+    # registry/repository/tag because the chart assembles them itself.
+    image:
+      registry: us-central1-docker.pkg.dev/erik-sandbox-408216/insights
+      repository: insights
+      tag: v0.2.0-rc.5
+    # Requires 'insights-sys-creds' and 'insights-sink-creds' secrets in GCP Secret Manager
 
   orderPipeline:
     enabled: true

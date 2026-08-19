@@ -22,7 +22,7 @@ apps:
 
   insights:
     enabled: true
-    image: us-central1-docker.pkg.dev/erik-sandbox-408216/insights/insights:scrape-fixes
+    image: us-central1-docker.pkg.dev/erik-sandbox-408216/insights/insights:v0.2.0-rc.5
     # Requires 'insights-sys-creds' and 'insights-license-jwt' secrets in GCP Secret Manager
 
   orderPipeline:

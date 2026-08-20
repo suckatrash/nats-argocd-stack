@@ -387,10 +387,12 @@ spec:
         server: '{{.cluster.server}}'
         namespace: insights
       sources:
-        # Public Synadia insights Helm chart. Tracks the insights-session-seed
-        # branch (under PR review) rather than a published chart version.
+        # Public Synadia insights Helm chart (v0.1.2). Pinned to the commit on
+        # the insights-session-seed PR branch since that version is not yet
+        # published to the Synadia Helm repo. Switch to a published chart
+        # version once the PR merges and releases.
         - repoURL: https://github.com/synadia-io/helm-charts.git
-          targetRevision: insights-session-seed
+          targetRevision: 5a2bd5fafe47d960f9a3a529931aae35b0a8eaa2
           path: charts/insights
           helm:
             releaseName: insights
@@ -445,27 +447,22 @@ spec:
                 - name: creds
                   mountPath: /etc/insights/creds
                   readOnly: true
+              # Sign web session cookies with a random seed sourced from the
+              # ExternalSecret (GCP Secret Manager: insights-web-session-seed),
+              # injected as INSIGHTS_WEB_SESSION_SEED. Keeps the seed out of git.
+              sessionSeed:
+                existingSecret: insights-nats-creds
+                key: seed
         # Namespace + ExternalSecret that the chart does not manage.
         - repoURL: https://github.com/suckatrash/nats-argocd-stack.git
           targetRevision: main
           path: base/insights
-      # The chart reads its generated web session seed back on upgrade via Helm
-      # `lookup`, which returns empty under ArgoCD (server-side helm template has
-      # no cluster access) — so the seed would regenerate on every reconcile,
-      # restart the pod, and invalidate sessions. Pin the live seed instead.
-      ignoreDifferences:
-        - group: ""
-          kind: Secret
-          name: insights-session
-          jsonPointers:
-            - /data
       syncPolicy:
         automated:
           prune: true
           selfHeal: true
         syncOptions:
           - CreateNamespace=true
-          - RespectIgnoreDifferences=true
         retry:
           limit: 5
           backoff:

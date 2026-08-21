@@ -1,0 +1,94 @@
+# A deliberately tiny Alertmanager that exists only to receive and let you
+# inspect the alerts Insights pushes via its `notifications.alertmanager`
+# endpoint (see the insights chart config in the ApplicationSet). Insights POSTs
+# to /api/v2/alerts; that endpoint is always served regardless of receiver
+# config, so the catch-all `null` receiver below is enough — received alerts are
+# visible in the UI/API at :9093.
+#
+# Inspect:  kubectl -n insights port-forward svc/alertmanager 9093:9093
+#           then browse http://localhost:9093  (or curl its /api/v2/alerts)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: alertmanager
+  namespace: insights
+data:
+  alertmanager.yml: |
+    route:
+      receiver: 'null'
+      group_by: ['alertname']
+      group_wait: 0s
+      group_interval: 5m
+      repeat_interval: 4h
+    receivers:
+      - name: 'null'
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: alertmanager
+  namespace: insights
+  labels:
+    app: alertmanager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: alertmanager
+  template:
+    metadata:
+      labels:
+        app: alertmanager
+    spec:
+      containers:
+        - name: alertmanager
+          image: quay.io/prometheus/alertmanager:v0.28.1
+          args:
+            - --config.file=/etc/alertmanager/alertmanager.yml
+            - --storage.path=/alertmanager
+            - --log.level=info
+          ports:
+            - name: http
+              containerPort: 9093
+          # Deliberately small: this is an inspection sink, not a production
+          # notifier. Bump if it OOMs, but it should idle well under this.
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 96Mi
+          readinessProbe:
+            httpGet:
+              path: /-/ready
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 15
+          volumeMounts:
+            - name: config
+              mountPath: /etc/alertmanager
+            - name: storage
+              mountPath: /alertmanager
+      volumes:
+        - name: config
+          configMap:
+            name: alertmanager
+        # No PVC — alerts are ephemeral inspection data; a restart clears them.
+        - name: storage
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: alertmanager
+  namespace: insights
+  labels:
+    app: alertmanager
+spec:
+  selector:
+    app: alertmanager
+  ports:
+    - name: http
+      port: 9093
+      targetPort: http

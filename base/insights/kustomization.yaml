@@ -2,8 +2,10 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 # Insights itself is deployed via the public Synadia Helm chart (see the
 # insights ApplicationSet). This kustomization only carries the resources the
-# chart does not manage: the namespace and the ExternalSecret that provides the
-# NATS credentials (insights-nats-creds) the chart mounts.
+# chart does not manage: the namespace, the ExternalSecret that provides the
+# NATS credentials (insights-nats-creds) the chart mounts, and a tiny
+# Alertmanager that receives the alerts Insights pushes (notifications config).
 resources:
   - namespace.yaml
   - externalsecret.yaml
+  - alertmanager.yaml

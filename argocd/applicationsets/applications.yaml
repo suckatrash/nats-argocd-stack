@@ -436,6 +436,26 @@ spec:
                     server: nats://{{.apps.nats.host}}:4222
                     creds: /etc/insights/creds/sink.creds
                   interval: 1m
+                # Push audit-check state transitions to the in-namespace
+                # Alertmanager (base/insights/alertmanager.yaml) so payloads can
+                # be inspected. `alertmanager` type sends the bare v2 alert array
+                # to /api/v2/alerts. Subscriptions are the check codes delivered
+                # (see docs/reference/checks.md); this set covers checks likely
+                # to fire in this lab (restarts, slow consumers, CPU, version
+                # skew, replica lag). Use the UI "Send test" button to force a
+                # synthetic alert regardless of subscriptions.
+                notifications:
+                  alertmanager:
+                    - name: local-am
+                      url: http://alertmanager.insights.svc.cluster.local:9093/api/v2/alerts
+                      enabled: true
+                      subscriptions:
+                        - SERVER_002
+                        - SERVER_003
+                        - SERVER_004
+                        - SERVER_008
+                        - ACCOUNT_002
+                        - STREAM_002
               # Mount the ExternalSecret-managed NATS creds (sys.creds,
               # sink.creds) referenced by config above.
               extraVolumes:

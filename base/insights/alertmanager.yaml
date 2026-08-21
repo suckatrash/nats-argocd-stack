@@ -14,16 +14,11 @@ metadata:
   namespace: insights
 data:
   alertmanager.yml: |
-    global:
-      # Insights delivers alertmanager alerts edge-triggered — once per check
-      # firing/resolved transition, NOT re-sent every epoch. Alertmanager
-      # auto-resolves any alert it stops hearing about within resolve_timeout
-      # (default 5m) and drops it from the active list, so a still-firing
-      # Insights check would vanish from here after 5m. Bumping this keeps a
-      # firing alert visible until Insights sends its explicit resolved
-      # transition (which carries endsAt and resolves it immediately regardless
-      # of this value). Long window suits an inspection sink.
-      resolve_timeout: 12h
+    # Default resolve_timeout (5m). Insights delivers alertmanager alerts
+    # edge-triggered (once per check firing/resolved transition, not re-sent),
+    # so a still-firing Insights check ages out of Alertmanager's active list
+    # ~5m after its firing transition — matching how a real customer deployment
+    # behaves. Kept at the default deliberately for a representative test env.
     route:
       receiver: 'null'
       group_by: ['alertname']

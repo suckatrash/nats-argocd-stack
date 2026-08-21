@@ -28,7 +28,7 @@ apps:
     image:
       registry: us-central1-docker.pkg.dev/erik-sandbox-408216/insights
       repository: insights
-      tag: v0.2.0-rc.5
+      tag: insights:ins-238
     # Requires 'insights-sys-creds' and 'insights-sink-creds' secrets in GCP Secret Manager
 
   orderPipeline:

@@ -448,6 +448,7 @@ spec:
                       url: http://alertmanager.insights.svc.cluster.local:9093/api/v2/alerts
                       enabled: true
                       subscriptions:
+                        - ACCOUNT_002
                         - ACCOUNT_009
                         - CLUSTER_001
                         - CLUSTER_002
@@ -455,6 +456,9 @@ spec:
                         - CONSUMER_013
                         - CONSUMER_014
                         - CONSUMER_017
+                        - SERVER_002
+                        - SERVER_003
+                        - SERVER_004
                         - SERVER_008
                         - SERVER_010
                         - SERVER_012
@@ -464,6 +468,7 @@ spec:
                         - SERVER_039
                         - SERVER_040
                         - SERVER_050
+                        - STREAM_002
                         - STREAM_005
                         - STREAM_030
                         - SYSTEM_004

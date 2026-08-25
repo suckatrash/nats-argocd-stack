@@ -52,9 +52,12 @@ apps:
     monitoringHost: nats-mon.gcp.iamusingtheinternet.com
 
     # Container image
+    # Preview builds are only published to synadia/nats-server (no bare tag;
+    # -scratch matches the official nats image's default base). Switch back to
+    # repository "nats" when returning to a GA release.
     image:
-      repository: nats
-      tag: 2.14.5
+      repository: synadia/nats-server
+      tag: 2.15.0-preview.1-scratch
       pullPolicy: IfNotPresent
 
     auth:

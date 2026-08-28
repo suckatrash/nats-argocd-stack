@@ -460,7 +460,6 @@ spec:
                       enabled: true
                       subscriptions:
                         - ACCOUNT_002
-                        - ACCOUNT_009
                         - CLUSTER_001
                         - CLUSTER_002
                         - CONNECTION_001
@@ -469,7 +468,6 @@ spec:
                         - CONSUMER_017
                         - SERVER_002
                         - SERVER_003
-                        - SERVER_004
                         - SERVER_008
                         - SERVER_010
                         - SERVER_012
@@ -481,7 +479,6 @@ spec:
                         - SERVER_050
                         - STREAM_002
                         - STREAM_005
-                        - STREAM_030
                         - SYSTEM_004
               # Mount the ExternalSecret-managed NATS creds (sys.creds,
               # sink.creds) referenced by config above.

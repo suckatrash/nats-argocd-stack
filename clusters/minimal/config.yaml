@@ -57,7 +57,7 @@ apps:
     # synadia/nats-server for previews) when profiling is no longer needed.
     image:
       repository: us-central1-docker.pkg.dev/erik-sandbox-408216/insights/nats-server
-      tag: live-profile
+      tag: live-profile.2
       pullPolicy: IfNotPresent
 
     auth:

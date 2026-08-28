@@ -52,12 +52,12 @@ apps:
     monitoringHost: nats-mon.gcp.iamusingtheinternet.com
 
     # Container image
-    # Preview builds are only published to synadia/nats-server (no bare tag;
-    # -scratch matches the official nats image's default base). Switch back to
-    # repository "nats" when returning to a GA release.
+    # Custom profiling build (Pyroscope-enabled nats-server) published to the
+    # private Artifact Registry. Switch back to repository "nats" (or
+    # synadia/nats-server for previews) when profiling is no longer needed.
     image:
-      repository: synadia/nats-server
-      tag: 2.15.0-preview.1-scratch
+      repository: us-central1-docker.pkg.dev/erik-sandbox-408216/insights/nats-server
+      tag: live-profile
       pullPolicy: IfNotPresent
 
     auth:

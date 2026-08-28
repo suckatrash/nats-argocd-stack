@@ -119,6 +119,17 @@ spec:
                   repository: "{{.apps.nats.image.repository}}"
                   tag: "{{.apps.nats.image.tag}}"
                   pullPolicy: "{{.apps.nats.image.pullPolicy}}"
+                # Pyroscope profiling for the custom nats-server build. Token is
+                # sourced from the 'pyroscope-creds' secret (created out of band).
+                env:
+                  PYROSCOPE_SERVER_ADDRESS: "https://profiles-prod-003.grafana.net"
+                  PYROSCOPE_APPLICATION_NAME: "nats.server.app"
+                  PYROSCOPE_BASIC_AUTH_USER: "366672"
+                  PYROSCOPE_BASIC_AUTH_PASSWORD:
+                    valueFrom:
+                      secretKeyRef:
+                        name: pyroscope-creds
+                        key: password
                 merge:
                   resources:
                     requests:

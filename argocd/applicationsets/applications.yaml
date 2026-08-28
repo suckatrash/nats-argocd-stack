@@ -475,7 +475,6 @@ spec:
                         - SERVER_035
                         - SERVER_036
                         - SERVER_039
-                        - SERVER_040
                         - SERVER_050
                         - STREAM_002
                         - STREAM_005

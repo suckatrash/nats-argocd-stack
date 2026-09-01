@@ -28,7 +28,7 @@ apps:
     image:
       registry: us-central1-docker.pkg.dev/erik-sandbox-408216/insights
       repository: insights
-      tag: live-profiling2
+      tag: live-profiling3
     # Requires 'insights-sys-creds' and 'insights-sink-creds' secrets in GCP Secret Manager
 
   orderPipeline:

@@ -458,27 +458,7 @@ spec:
                     - name: local-am
                       url: http://alertmanager.insights.svc.cluster.local:9093/api/v2/alerts
                       enabled: true
-                      subscriptions:
-                        - ACCOUNT_002
-                        - CLUSTER_001
-                        - CLUSTER_002
-                        - CONNECTION_001
-                        - CONSUMER_013
-                        - CONSUMER_014
-                        - CONSUMER_017
-                        - SERVER_002
-                        - SERVER_003
-                        - SERVER_008
-                        - SERVER_010
-                        - SERVER_012
-                        - SERVER_031
-                        - SERVER_035
-                        - SERVER_036
-                        - SERVER_039
-                        - SERVER_050
-                        - STREAM_002
-                        - STREAM_005
-                        - SYSTEM_004
+                      subscriptions: [*]
               # Mount the ExternalSecret-managed NATS creds (sys.creds,
               # sink.creds) referenced by config above.
               extraVolumes:

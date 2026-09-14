@@ -52,12 +52,13 @@ apps:
     monitoringHost: nats-mon.gcp.iamusingtheinternet.com
 
     # Container image
-    # Custom profiling build (Pyroscope-enabled nats-server) published to the
-    # private Artifact Registry. Switch back to repository "nats" (or
-    # synadia/nats-server for previews) when profiling is no longer needed.
+    # Preview release from Synadia. Switch to a custom profiling build (a
+    # Pyroscope-enabled nats-server in the private Artifact Registry, e.g.
+    # us-central1-docker.pkg.dev/erik-sandbox-408216/insights/nats-server) when
+    # live profiling is needed, or to repository "nats" for stable releases.
     image:
-      repository: us-central1-docker.pkg.dev/erik-sandbox-408216/insights/nats-server
-      tag: live-profile.2
+      repository: synadia/nats-server
+      tag: 2.15.0-RC.1
       pullPolicy: IfNotPresent
 
     auth:

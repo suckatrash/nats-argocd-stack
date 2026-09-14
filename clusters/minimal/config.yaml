@@ -58,7 +58,9 @@ apps:
     # live profiling is needed, or to repository "nats" for stable releases.
     image:
       repository: synadia/nats-server
-      tag: 2.15.0-RC.1
+      # Preview releases are only published with a variant suffix (no bare
+      # tag); -scratch mirrors the default scratch-based `nats:VERSION` image.
+      tag: 2.15.0-RC.1-scratch
       pullPolicy: IfNotPresent
 
     auth:

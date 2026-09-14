@@ -251,12 +251,14 @@ spec:
                 size: 10Gi
                 storageClass: standard-rwo
               # 512Mi OOM-killed the server during WAL replay, which crash-looped
-              # the app and grew the WAL further. Requests stay modest so the pod
-              # schedules on the small default pool; the limit gives replay and
-              # compaction headroom.
+              # the app and grew the WAL further. Keep the memory request here;
+              # it guards replay. The CPU request is 50m so the pod fits on the
+              # single us-central1-c node it shares with nats-0 (its PV pins it
+              # to that zone, which sits ~93% CPU-requested); the 500m limit
+              # still lets it burst for scrapes and compaction.
               resources:
                 requests:
-                  cpu: 100m
+                  cpu: 50m
                   memory: 512Mi
                 limits:
                   cpu: 500m

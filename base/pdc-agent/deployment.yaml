@@ -26,7 +26,7 @@ spec:
         fsGroup: 30000
       containers:
         - name: pdc-agent
-          image: grafana/pdc-agent:0.0.61
+          image: grafana/pdc-agent:0.0.64
           imagePullPolicy: IfNotPresent
           args:
             - "-cluster"

@@ -237,7 +237,7 @@ spec:
       source:
         repoURL: https://prometheus-community.github.io/helm-charts
         chart: prometheus
-        targetRevision: 29.20.0
+        targetRevision: 29.30.0
         helm:
           valuesObject:
             server:

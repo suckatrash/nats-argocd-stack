@@ -7,3 +7,6 @@ resources:
   - stream-setup-job.yaml
   - deployment.yaml
   - service.yaml
+  # Consumer side (natscore receiver -> Jaeger) on the stable natscore image.
+  - consumer-configmap.yaml
+  - consumer-deployment.yaml

@@ -1,0 +1,49 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-consumer-config
+  namespace: otel-collector
+data:
+  config.yaml: |
+    # Consumer side of the split pipeline (runs on the stable natscore image):
+    #
+    #   natscore receiver (durable on OTEL_TEST) -> batch -> otlp -> Jaeger
+    #
+    # The producer (otel-collector, contrib nats exporter) publishes OTLP-proto
+    # to subject otel_test; the OTEL_TEST stream captures it and this durable
+    # consumer decodes and forwards to Jaeger. Kept separate because the contrib
+    # exporter (v0.162) and this natscore receiver (v1.65) can't share one
+    # collector binary — they interoperate over NATS instead.
+    receivers:
+      natscore:
+        endpoint: tls://nats1.gcp.iamusingtheinternet.com:4222
+        nkey_user_file:
+          user_file: /etc/nats/creds/collector.creds
+        jetstream:
+          domain: test01
+          ack_wait: 30s
+          max_deliver: 5
+        traces:
+          subject: otel_test
+          encoding: otlp_proto
+          stream: OTEL_TEST
+          durable: otel_test_consumer
+
+    exporters:
+      otlp/jaeger:
+        endpoint: jaeger.jaeger.svc.cluster.local:4317
+        tls:
+          insecure: true
+
+    processors:
+      batch: {}
+
+    service:
+      telemetry:
+        metrics:
+          level: none
+      pipelines:
+        traces:
+          receivers: [natscore]
+          processors: [batch]
+          exporters: [otlp/jaeger]

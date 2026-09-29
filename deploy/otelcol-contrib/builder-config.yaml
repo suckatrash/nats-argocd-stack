@@ -1,0 +1,29 @@
+# ocb manifest for a test image of the CONTRIB NATS exporter (core publish).
+#
+# Components: otlp receiver -> batch -> nats (contrib) + debug exporters.
+# The contrib nats exporter and pkg/ottl carry local (unreleased) changes, so
+# they are replaced with the working copies in the contrib checkout.
+#
+# The replace paths below are ABSOLUTE and machine-specific — they must point at
+# your opentelemetry-collector-contrib checkout. build.sh defaults to
+# /Users/erik/projects/opentelemetry-collector-contrib; edit both if yours
+# differs. Collector component versions (and the ocb version in build.sh) must
+# match the exporter's collector dependency (currently v0.162.0 / v1.68.0).
+dist:
+  name: otelcol-nats-contrib
+  description: OTel Collector with the contrib NATS exporter (core publish test)
+  output_path: ./_build
+
+receivers:
+  - gomod: go.opentelemetry.io/collector/receiver/otlpreceiver v0.162.0
+
+processors:
+  - gomod: go.opentelemetry.io/collector/processor/batchprocessor v0.162.0
+
+exporters:
+  - gomod: go.opentelemetry.io/collector/exporter/debugexporter v0.162.0
+  - gomod: github.com/open-telemetry/opentelemetry-collector-contrib/exporter/natsexporter v0.162.0
+
+replaces:
+  - github.com/open-telemetry/opentelemetry-collector-contrib/exporter/natsexporter => /Users/erik/projects/opentelemetry-collector-contrib/exporter/natsexporter
+  - github.com/open-telemetry/opentelemetry-collector-contrib/pkg/ottl => /Users/erik/projects/opentelemetry-collector-contrib/pkg/ottl

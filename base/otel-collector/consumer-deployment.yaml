@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-collector-consumer
+  namespace: otel-collector
+  labels:
+    app: otel-collector-consumer
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: otel-collector-consumer
+  template:
+    metadata:
+      labels:
+        app: otel-collector-consumer
+    spec:
+      containers:
+        - name: otel-collector
+          # Stable ocb-built natscore image (built from the
+          # opentelemetry-collector-nats repo, deploy/). Pinned here, not patched
+          # by the ApplicationSet (which only targets the otel-collector
+          # producer): this side stays on the released natscore receiver until
+          # that receiver is donated to contrib.
+          image: us-central1-docker.pkg.dev/erik-sandbox-408216/insights/otelcol-nats:4bc820f
+          args: ["--config", "/etc/otelcol/config.yaml"]
+          volumeMounts:
+            - name: config
+              mountPath: /etc/otelcol
+              readOnly: true
+            - name: nats-creds
+              mountPath: /etc/nats/creds
+              readOnly: true
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              cpu: 250m
+              memory: 256Mi
+      volumes:
+        - name: config
+          configMap:
+            name: otel-collector-consumer-config
+        - name: nats-creds
+          secret:
+            secretName: otel-collector-nats-creds

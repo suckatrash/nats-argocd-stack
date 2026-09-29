@@ -38,9 +38,10 @@ apps:
 
   otelCollector:
     enabled: true
-    # Custom ocb-built image with the natscore components (built from the
-    # opentelemetry-collector-nats repo, deploy/). Use an immutable tag.
-    image: us-central1-docker.pkg.dev/erik-sandbox-408216/insights/otelcol-nats:4bc820f
+    # Custom ocb-built image. Temporarily the CONTRIB nats exporter (core
+    # publish) built from the opentelemetry-collector-contrib checkout for PR
+    # testing; revert to the natscore build (:4bc820f) afterwards. Immutable tag.
+    image: us-central1-docker.pkg.dev/erik-sandbox-408216/insights/otelcol-nats:nats-contrib-202609291339
 
   jaeger:
     enabled: true

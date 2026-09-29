@@ -5,13 +5,15 @@ metadata:
   namespace: otel-collector
 data:
   config.yaml: |
-    # Two trace pipelines:
-    #   produce:  OTLP from apps -> natscore exporter -> JetStream OTEL_TEST
-    #   consume:  natscore receiver (durable) -> Jaeger (OTLP)
+    # Test config for the contrib NATS exporter (core NATS publish path).
     #
-    # Connects to the cluster NATS over the external LB endpoint so the server's
-    # Let's Encrypt cert (CN nats1.gcp...) verifies against system roots — the
-    # same way the order-pipeline connects. JetStream domain is test01.
+    #   otlp (from apps) -> batch -> nats exporter -> subject otel_test
+    #
+    # The contrib exporter publishes with core NATS (fire-and-forget, no
+    # JetStream block). The OTEL_TEST JetStream stream captures core publishes
+    # to its subject (otel_test), so delivery is verifiable with
+    # `nats stream info OTEL_TEST`. Connects over the external LB endpoint so the
+    # server's Let's Encrypt cert (CN nats1.gcp...) verifies against system roots.
     receivers:
       otlp:
         protocols:
@@ -19,34 +21,18 @@ data:
             endpoint: 0.0.0.0:4317
           http:
             endpoint: 0.0.0.0:4318
-      natscore:
-        endpoint: tls://nats1.gcp.iamusingtheinternet.com:4222
-        nkey_user_file:
-          user_file: /etc/nats/creds/collector.creds
-        jetstream:
-          domain: test01
-          ack_wait: 30s
-          max_deliver: 5
-        traces:
-          subject: otel_test
-          encoding: otlp_proto
-          stream: OTEL_TEST
-          durable: otel_test_consumer
 
     exporters:
-      natscore:
+      nats:
         endpoint: tls://nats1.gcp.iamusingtheinternet.com:4222
-        nkey_user_file:
-          user_file: /etc/nats/creds/collector.creds
-        jetstream:
-          domain: test01
+        auth:
+          nkey_user_file:
+            user_file: /etc/nats/creds/collector.creds
         traces:
-          subject: '"otel_test"'      # OTTL literal (exporter side) — inner quotes required
+          subject: '"otel_test"'      # OTTL literal — inner quotes required
           marshaler: otlp_proto
-      otlp/jaeger:
-        endpoint: jaeger.jaeger.svc.cluster.local:4317
-        tls:
-          insecure: true
+      debug:
+        verbosity: normal
 
     processors:
       batch: {}
@@ -56,11 +42,7 @@ data:
         metrics:
           level: none
       pipelines:
-        traces/produce:
+        traces:
           receivers: [otlp]
           processors: [batch]
-          exporters: [natscore]
-        traces/consume:
-          receivers: [natscore]
-          processors: [batch]
-          exporters: [otlp/jaeger]
+          exporters: [nats, debug]

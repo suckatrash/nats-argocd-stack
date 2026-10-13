@@ -28,7 +28,7 @@ apps:
     image:
       registry: us-central1-docker.pkg.dev/erik-sandbox-408216/insights
       repository: insights
-      tag: landing-proto-ebc35ace
+      tag: landing-proto-0ff73a7a
     # Requires 'insights-sys-creds' and 'insights-sink-creds' secrets in GCP Secret Manager
 
   orderPipeline:

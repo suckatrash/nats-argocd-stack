@@ -17,12 +17,11 @@ spec:
     spec:
       containers:
         - name: otel-collector
-          # Stable ocb-built natscore image (built from the
-          # opentelemetry-collector-nats repo, deploy/). Pinned here, not patched
-          # by the ApplicationSet (which only targets the otel-collector
-          # producer): this side stays on the released natscore receiver until
-          # that receiver is donated to contrib.
-          image: us-central1-docker.pkg.dev/erik-sandbox-408216/insights/otelcol-nats:4bc820f
+          # Contrib test image (deploy/otelcol-contrib), the same one as the
+          # producer. Pinned here because the ApplicationSet only patches the
+          # otel-collector producer; keep it in sync with
+          # clusters/minimal/config.yaml (apps.otelCollector.image).
+          image: us-central1-docker.pkg.dev/erik-sandbox-408216/insights/otelcol-nats:nats-contrib-20261026150353
           args: ["--config", "/etc/otelcol/config.yaml"]
           volumeMounts:
             - name: config

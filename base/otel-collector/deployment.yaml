@@ -17,8 +17,8 @@ spec:
     spec:
       containers:
         - name: otel-collector
-          # Custom ocb-built image with the natscore components (see the
-          # opentelemetry-collector-nats repo, deploy/). Patched from
+          # Custom ocb-built image with the NATS components (currently the
+          # contrib test build, deploy/otelcol-contrib/). Patched from
           # apps.otelCollector.image by the ApplicationSet.
           image: PLACEHOLDER
           args: ["--config", "/etc/otelcol/config.yaml"]

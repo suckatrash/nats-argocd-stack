@@ -29,7 +29,7 @@ spec:
             # In-memory storage is unbounded by default and OOM-kills under load.
             # Cap the retained traces so memory stays flat (demo keeps recent ones).
             - name: MEMORY_MAX_TRACES
-              value: "20000"
+              value: "5000"
           ports:
             - name: ui
               containerPort: 16686
